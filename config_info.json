@@ -1,0 +1,15 @@
+{
+  "app_mode": "cloud", 
+  "columns": {
+    "date": ["date", "trd_date"],
+    "index_candidates": ["clqn_prc", "close", "index", "px"],
+    "score_prefix": ["score_", "scoreh", "sum_score", "f4"]
+  },
+  "modules": {
+    "m11_div_vs_10y": true,
+    "m12_ep_minus_10y": true,
+    "m21_rotation": true,
+    "m22_crowding": true,
+    "m31_turnover_std": true
+  }
+}
