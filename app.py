@@ -623,7 +623,13 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
 if btn_ep:
     try:
-        epdf = load_ep10_csv(ep_csv_path)
+        if not ep_csv_path or not os.path.exists(ep_csv_path):
+            st.error(f"路径无效：{ep_csv_path}")
+            st.stop()
+
+        epdf = pd.read_csv(ep_csv_path)
+
+        # epdf = load_ep10_csv(ep_csv_path)
 
         # 时间过滤
         if ep_start:
@@ -1153,6 +1159,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
