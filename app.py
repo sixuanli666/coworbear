@@ -619,7 +619,7 @@ with st.sidebar:
     ep_default = get_path("div_result_csv2")
     ep_csv_path = st.text_input(
         "E/P−10Y 结果CSV路径",
-        value=st.session_state.get("ep_path", ep_default),  # 用 state
+        value=get_path("div_result_csv2"),
         key="ep_path"
     )
 
@@ -1246,6 +1246,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
