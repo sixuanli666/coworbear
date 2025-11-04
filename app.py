@@ -174,6 +174,9 @@ def resolve_first_existing(p: str) -> Path | None:
     return None
 
 # ========== Streamlit UI ==========
+# —— 避免 ep_path 为空导致 value 被忽略 —— 
+if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
+    st.session_state["ep_path"] = get_path("div_result_csv2")
 
 st.set_page_config(page_title='因子综合打分 · 交互可视化', layout='wide')
 st.title('因子综合打分交互可视化')
@@ -397,6 +400,7 @@ with st.sidebar:
     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands")
 
 def _fetch_treasury_10y_via_api():
+    xd = None
     if xd is None:
         st.info("未安装 xcsc_dataapi，已跳过 10Y 国债数据获取。")
         return pd.DataFrame(columns=["date", "value"])  # 返回空表，不报错
@@ -613,7 +617,12 @@ with st.expander("指标说明", expanded=False):
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
     ep_default = get_path("div_result_csv2")
-    ep_csv_path   = st.text_input("E/P−10Y 结果CSV路径", value=ep_default, key="ep_path")
+    ep_csv_path = st.text_input(
+        "E/P−10Y 结果CSV路径",
+        value=st.session_state.get("ep_path", ep_default),  # 用 state
+        key="ep_path"
+    )
+
 
 
 
@@ -1237,6 +1246,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
