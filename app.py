@@ -590,8 +590,8 @@ with st.expander("指标说明", expanded=False):
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
     ep_default = get_path("div_result_csv2")
-    ep_input   = st.text_input("E/P−10Y 结果CSV路径", value=ep_default, key="ep_path")
-    ep_csv_path = (ep_input or "").strip() or ep_default
+    ep_csv_path   = st.text_input("E/P−10Y 结果CSV路径", value=ep_default, key="ep_path2")
+
 
 
 
@@ -1158,6 +1158,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
