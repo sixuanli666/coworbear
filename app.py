@@ -149,6 +149,29 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
     )
     return fig
 
+from pathlib import Path
+APP_DIR = Path(__file__).parent
+
+def resolve_first_existing(p: str) -> Path | None:
+    if not p:
+        return None
+    cands = []
+    P = Path(p)
+
+    # 1) 原样 / 展开 ~
+    cands += [P, P.expanduser()]
+    # 2) 以 cwd 为基准
+    cands += [Path(os.getcwd()) / P, (Path(os.getcwd()) / P).expanduser()]
+    # 3) 以脚本目录为基准（**关键**：assets 多半跟 app.py 放一起）
+    cands += [APP_DIR / P, (APP_DIR / P).expanduser()]
+
+    for c in cands:
+        try:
+            if c.exists():
+                return c
+        except:
+            pass
+    return None
 
 # ========== Streamlit UI ==========
 
@@ -1214,6 +1237,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
