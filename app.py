@@ -590,7 +590,7 @@ with st.expander("指标说明", expanded=False):
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
     ep_default = get_path("div_result_csv2")
-    ep_csv_path   = st.text_input("E/P−10Y 结果CSV路径", value=ep_default, key="ep_path2")
+    ep_csv_path   = st.text_input("E/P−10Y 结果CSV路径", value=ep_default, key="ep_path")
 
 
 
@@ -652,20 +652,20 @@ def resolve_first_existing(p: str) -> Path | None:
 # —— 在侧边栏的 1.2 参数区下面，临时加一个小诊断面板 —— #
 with st.sidebar:
     st.caption("— 1.2 路径诊断 —")
-    st.write("ep_csv_path(原值)：", repr(st.session_state.get("ep_path2")))
+    st.write("ep_csv_path(原值)：", repr(st.session_state.get("ep_path")))
     st.write("cwd：", os.getcwd())
-    _resolved = resolve_first_existing(st.session_state.get("ep_path2", ""))
+    _resolved = resolve_first_existing(st.session_state.get("ep_path", ""))
     st.write("解析结果：", repr(str(_resolved) if _resolved else None))
-    st.write("存在性：", os.path.exists(st.session_state.get("ep_path2","")))
+    st.write("存在性：", os.path.exists(st.session_state.get("ep_path","")))
     if st.button("恢复默认(1.2)", key="ep_reset_btn"):
-        st.session_state["ep_path2"] = get_path("div_result_csv2")
-        st.success(f"已恢复默认：{st.session_state['ep_path2']}")
+        st.session_state["ep_path"] = get_path("div_result_csv2")
+        st.success(f"已恢复默认：{st.session_state['ep_path']}")
 
 
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
 if btn_ep:
     try:
-        ep_path_raw = st.session_state.get("ep_path2", "")
+        ep_path_raw = st.session_state.get("ep_path", "")
         ep_path = resolve_first_existing(ep_path_raw)
         if ep_path is None:
             st.error(f"路径无效：{ep_path_raw}\n"
@@ -1214,6 +1214,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
