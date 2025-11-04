@@ -3,6 +3,7 @@
     "merged_csv": "assets/因子综合打分_合并版本.csv",
     "single_factor_img_dir": "assets/单因子图输出",
     "div_result_csv": "assets/1.1 权重结果_2002_2025.csv",
+    "div_result_csv2": "assets/1.2 weighted_ep_10bond.csv",
     "industry_img1": "assets/2.2 行业拥挤度_图1.png",
     "industry_img2": "assets/2.2 TMT行业拥挤度_图2.png",
     "industry_table_xlsx": "assets/2.2_行业周度概览.xlsx",
@@ -13,3 +14,4 @@
     "rot_quarter_csv": "assets/2.1 大小盘轮动_季度收益与净值.csv"
   }
 }
+
