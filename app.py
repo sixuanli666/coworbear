@@ -591,7 +591,7 @@ with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
     ep_csv_path = st.text_input(
         "E/P−10Y 结果CSV路径",
-        value="D:/projects/权益投资部模型库/1.2 weighted_ep_10bond.csv",
+        value=get_path(""),
         key="ep_path"
     )
     ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
@@ -1151,6 +1151,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
