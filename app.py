@@ -374,9 +374,16 @@ with st.sidebar:
     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands")
 
 def _fetch_treasury_10y_via_api():
-    """直接复用你脚本里的逻辑，但为了稳健，这里用 try/except 包一下。"""
+    if xd is None:
+        st.info("未安装 xcsc_dataapi，已跳过 10Y 国债数据获取。")
+        return pd.DataFrame(columns=["date", "value"])  # 返回空表，不报错
+
     try:
-        import xcsc_dataapi as xd
+        try:
+            import xcsc_dataapi as xd
+        except ModuleNotFoundError:
+            xd = None  # 兼容：线上没装也不炸
+
         token = xd.get_token(
             login_name="07780", secret_key="gd5mtd^nsfx7",
             key="vp77mmk7kwvrkc6g", iv="aoq9kblv3j559ife"
@@ -426,7 +433,9 @@ def _fetch_treasury_10y_via_api():
         return pd.DataFrame(columns=['trade_date','nation10_yield'])
 
 def _fetch_sh_index_daily(start_date_str, end_date_str):
-    """上证综指日线（用你现有接口）。失败时返回空DF。"""
+    if xd is None:
+        st.info("未安装 xcsc_dataapi，已跳过上证综指数据获取。")
+        return pd.DataFrame(columns=["date", "close"])
     try:
         import xcsc_dataapi as xd
         token = xd.get_token(
@@ -505,7 +514,9 @@ if btn:
         # 拉 10Y 国债并对齐
         ten_y = _fetch_treasury_10y_via_api()
         if ten_y.empty:
-            st.error("未能获取十年国债收益率。"); st.stop()
+            st.warning("10Y 国债数据为空，相关图表已跳过。")
+        # if ten_y.empty:
+        #     st.error("未能获取十年国债收益率。"); st.stop()
 
         ten_y = (ten_y.set_index('trade_date').resample('D').asfreq())
         fv = ten_y['nation10_yield'].first_valid_index()
@@ -1140,6 +1151,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
