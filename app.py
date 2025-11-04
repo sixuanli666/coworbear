@@ -160,7 +160,7 @@ st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV�
 # 侧边栏：数据输入
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
-    default_path = 'D:/projects/权益投资部模型库/分数/因子综合打分_合并版本.csv'
+    default_path = get_path("merged_csv")
     use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。')
     uploaded = None
     if not use_default:
@@ -1140,6 +1140,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
