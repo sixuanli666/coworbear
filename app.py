@@ -589,11 +589,13 @@ with st.expander("指标说明", expanded=False):
 # 侧边栏参数
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
-    ep_csv_path = st.text_input(
-        "E/P−10Y 结果CSV路径",
-        value=get_path("div_result_csv2"),
-        key="ep_path"
-    )
+    # ep_csv_path = st.text_input(
+    #     "E/P−10Y 结果CSV路径",
+    #     value=get_path("div_result_csv2"),
+    #     key="ep_path"
+    # )
+    ep_csv_path = st.session_state.get("ep_path") or get_path("div_result_csv2")
+
     ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
     ep_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
     ep_clip  = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
@@ -1151,6 +1153,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
