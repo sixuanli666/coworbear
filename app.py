@@ -437,12 +437,12 @@ def _fetch_sh_index_daily(start_date_str, end_date_str):
         st.info("未安装 xcsc_dataapi，已跳过上证综指数据获取。")
         return pd.DataFrame(columns=["date", "close"])
     try:
-        import xcsc_dataapi as xd
-        token = xd.get_token(
-            login_name="07780", secret_key="gd5mtd^nsfx7",
-            key="vp77mmk7kwvrkc6g", iv="aoq9kblv3j559ife"
-        )
-        pro_api = xd.pro_api(token)
+        # import xcsc_dataapi as xd
+        # token = xd.get_token(
+        #     login_name="07780", secret_key="gd5mtd^nsfx7",
+        #     key="vp77mmk7kwvrkc6g", iv="aoq9kblv3j559ife"
+        # )
+        # pro_api = xd.pro_api(token)
 
         import time
         def query_with_retry(path, max_retry=3, delay=0.02, **kwargs):
@@ -1151,6 +1151,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
