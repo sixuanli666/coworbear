@@ -619,16 +619,78 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
     df["weighted_ep_10bond"] = pd.to_numeric(df["weighted_ep_10bond"], errors="coerce")
     return df
 
+
+from pathlib import Path
+
+def resolve_first_existing(p: str) -> Path | None:
+    """更稳的路径解析：按多种基准目录尝试"""
+    if not p:
+        return None
+    cand = []
+    # 原样
+    cand.append(Path(p))
+    # 展开 ~
+    cand.append(Path(p).expanduser())
+    # 以当前工作目录为基准
+    cand.append(Path(os.getcwd()) / p)
+    cand.append((Path(os.getcwd()) / p).expanduser())
+    try:
+        # 以脚本所在目录为基准（streamlit 下 __file__ 也可用）
+        here = Path(__file__).parent
+        cand.append(here / p)
+        cand.append((here / p).expanduser())
+    except:
+        pass
+
+    for c in cand:
+        try:
+            if c.exists():
+                return c
+        except:
+            continue
+    return None
+# —— 在侧边栏的 1.2 参数区下面，临时加一个小诊断面板 —— #
+with st.sidebar:
+    st.caption("— 1.2 路径诊断 —")
+    st.write("ep_csv_path(原值)：", repr(st.session_state.get("ep_path2")))
+    st.write("cwd：", os.getcwd())
+    _resolved = resolve_first_existing(st.session_state.get("ep_path2", ""))
+    st.write("解析结果：", repr(str(_resolved) if _resolved else None))
+    st.write("存在性：", os.path.exists(st.session_state.get("ep_path2","")))
+    if st.button("恢复默认(1.2)", key="ep_reset_btn"):
+        st.session_state["ep_path2"] = get_path("div_result_csv2")
+        st.success(f"已恢复默认：{st.session_state['ep_path2']}")
+
+
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
 if btn_ep:
     try:
-        if not ep_csv_path:
-            st.error(f"路径无效：{ep_csv_path}")
+        ep_path_raw = st.session_state.get("ep_path2", "")
+        ep_path = resolve_first_existing(ep_path_raw)
+        if ep_path is None:
+            st.error(f"路径无效：{ep_path_raw}\n"
+                     f"工作目录：{os.getcwd()}\n"
+                     f"建议：把文件放到以上工作目录下的 {ep_path_raw}，或点“恢复默认(1.2)”，"
+                     f"或手动在输入框里粘贴绝对路径。")
             st.stop()
 
-        epdf = pd.read_csv(ep_csv_path)
+        # 真正读取（带一点容错编码）
+        try:
+            epdf = pd.read_csv(ep_path)
+        except UnicodeDecodeError:
+            epdf = pd.read_csv(ep_path, encoding="utf-8-sig")
+        except Exception:
+            epdf = pd.read_csv(ep_path, engine="python")
 
-        # epdf = load_ep10_csv(ep_csv_path)
+        # 列/类型规范化（避免后续筛选/作图出错）
+        if "trade_date" not in epdf.columns:
+            st.error("CSV 缺少 trade_date 列"); st.stop()
+        if "weighted_ep_10bond" not in epdf.columns:
+            st.error("CSV 缺少 weighted_ep_10bond 列"); st.stop()
+
+        epdf["trade_date"] = pd.to_datetime(epdf["trade_date"], errors="coerce")
+        epdf = epdf.dropna(subset=["trade_date"]).sort_values("trade_date").drop_duplicates("trade_date", keep="last")
+        epdf["weighted_ep_10bond"] = pd.to_numeric(epdf["weighted_ep_10bond"], errors="coerce")
 
         # 时间过滤
         if ep_start:
@@ -641,18 +703,16 @@ if btn_ep:
         if epdf.empty:
             st.warning("过滤后无数据。"); st.stop()
 
-        s = pd.to_numeric(epdf["weighted_ep_10bond"], errors="coerce")
+        s = epdf["weighted_ep_10bond"].copy()
         if ep_clip:
             lo, hi = s.quantile([0.01, 0.99])
             s = s.clip(lo, hi)
-        mu = float(s.mean())
-        sd = float(s.std(ddof=1))
+        mu = float(pd.to_numeric(s, errors="coerce").mean())
+        sd = float(pd.to_numeric(s, errors="coerce").std(ddof=1))
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=epdf["trade_date"], y=s, mode="lines",
-            name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"
-        ))
+        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=s, mode="lines",
+                                 name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"))
         if ep_bands:
             fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu]*len(epdf),
                                      mode="lines", name="均值", line=dict(dash="dot")))
@@ -660,15 +720,11 @@ if btn_ep:
                                      mode="lines", name="均值+1σ", line=dict(dash="dash")))
             fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu-sd]*len(epdf),
                                      mode="lines", name="均值-1σ", line=dict(dash="dash")))
-
-        fig.update_layout(
-            template="plotly_dark",
-            height=520,
-            legend=dict(orientation="h", x=0, y=1.12),
-            margin=dict(l=60, r=40, t=40, b=40),
-            xaxis=dict(title="日期"),
-            yaxis=dict(title="E/P − 10Y（小数）")  # 这是小数：比如 0.02 表示 2%
-        )
+        fig.update_layout(template="plotly_dark", height=520,
+                          legend=dict(orientation="h", x=0, y=1.12),
+                          margin=dict(l=60, r=40, t=40, b=40),
+                          xaxis=dict(title="日期"),
+                          yaxis=dict(title="E/P − 10Y（小数）"))
         st.plotly_chart(fig, use_container_width=True)
 
         with st.expander("下载当前视图数据"):
@@ -678,7 +734,7 @@ if btn_ep:
                                file_name="ep_minus_10y_clean.csv", mime="text/csv")
 
     except Exception as e:
-        st.error(f"生成失败：{e}")
+        st.error(f"生成失败：{type(e).__name__}: {e}")
 
 
 ######################大小盘轮动
@@ -1158,6 +1214,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
