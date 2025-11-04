@@ -594,7 +594,7 @@ with st.sidebar:
     #     value=get_path("div_result_csv2"),
     #     key="ep_path"
     # )
-    ep_csv_path = st.session_state.get("ep_path") or get_path("div_result_csv2")
+    ep_csv_path = get_path("div_result_csv2")
 
     ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
     ep_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
@@ -1159,6 +1159,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
