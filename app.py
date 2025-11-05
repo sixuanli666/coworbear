@@ -389,7 +389,7 @@ with st.sidebar:
         value=get_path("div_result_csv"),  # 你原来的路径键
         key="div_csv_path_fixed"
     )
-    div_uploaded = st.file_uploader("或上传CSV（留空则使用路径）", type=["csv"], key="div_csv_upload_fixed")
+    # div_uploaded = st.file_uploader("或上传CSV（留空则使用路径）", type=["csv"], key="div_csv_upload_fixed")
     div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
     div_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
@@ -1120,6 +1120,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
