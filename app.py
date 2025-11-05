@@ -27,11 +27,10 @@ import streamlit as st
 from pathlib import Path
 import json
 
-@st.cache_data(show_spinner=False)
-def load_config(path="config.json", mtime=None):
-    with open(path, "r", encoding="utf-8") as f:
-        import json
+def load_config():
+    with open("config.json", "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 CONFIG = load_config("config.json", os.path.getmtime("config.json"))
 
@@ -1149,6 +1148,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
