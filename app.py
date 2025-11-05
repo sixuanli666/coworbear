@@ -372,233 +372,158 @@ else:
                         st.error(f"加载图片失败: {img_path}\n错误: {e}")
 
 
-# ======== 新增：1.1 300指数股息率/十年国债 × 上证综指（Plotly 双轴） ========
-import plotly.graph_objects as go
-from datetime import datetime
-
+# ======== 1.1（纯CSV版）：300指数股息率 / 十年国债 × 上证综指（右轴） ========
 st.markdown("---")
 st.subheader("1.1 300指数股息率 / 十年国债 × 上证综指（右轴）")
 
 with st.expander("指标说明", expanded=False):
     st.write("""
-    300指数（剔除了金融股）的股息率与十年期国债收益率的比较。股息率是指股票的年度股息除以股价，而十年期国债收益率则是债券投资的回报率。图中展示了这两者的变化趋势。
-    蓝色虚线表示平均值，+1倍和-1倍标准差，图示了股息率与国债收益率的相对波动情况。通过这些线可以看出股息率与国债收益率之间的差距变化，且整体呈现逐步下降的趋势，可能表示股息率逐渐低于国债收益率。
+    本版仅离线读CSV，不调用任何接口。CSV需至少包含：
+    - trade_date：日期
+    - weighted_dividend_rate：300指数（或你需要的口径）股息率（与国债收益率单位一致，小数或百分点均可）
+    - nation10_yield：十年期国债收益率（与股息率单位一致）
+    - sh_close：上证综指收盘价（用于右轴）
+    若已有比值列（如 weighted_dividend_rate_div_nation10），也可直接选用。
     """)
 
-# ---- 侧边栏参数（路径与时间） ----
+# ---- 侧边栏参数 ----
 with st.sidebar:
-    st.header("1.1 300指数股息率/十年国债·参数")
-    out_file_path = st.text_input(
-        "结果CSV路径（含 trade_date, weighted_dividend_rate）",
-        value=get_path("div_result_csv"),
-        key="div_path"
+    st.header("1.1 300指数股息率/十年国债·参数（CSV版）")
+    div_csv_path = st.text_input(
+        "CSV路径（含 trade_date, weighted_dividend_rate, nation10_yield, sh_close）",
+        value=get_path("div_result_csv"),  # 你原本的路径键
+        key="div_csv_path_csvonly"
     )
-    # 时间范围（默认自动根据CSV）
-    custom_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start")
-    custom_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end")
-    # 均值带
-    show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands")
+    # 也支持上传
+    div_uploaded = st.file_uploader(
+        "或上传CSV（留空则使用路径）",
+        type=["csv"],
+        key="div_csv_upload_csvonly"
+    )
+    # 时间过滤
+    div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_csvonly")
+    div_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_csvonly")
+    # 是否显示均值带
+    show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_csvonly")
+    # 单位说明：若二者同为小数或同为百分比，比例不受影响；若不一致，请勾选统一
+    unify_unit = st.checkbox("若单位不一致，统一为百分比(×100)", value=False, key="div_unit_unify")
 
-def _fetch_treasury_10y_via_api():
-    xd = None
-    if xd is None:
-        st.info("未安装 xcsc_dataapi，已跳过 10Y 国债数据获取。")
-        return pd.DataFrame(columns=["date", "value"])  # 返回空表，不报错
-
+btn_csv_11 = st.button("生成图表（只读CSV）", type="primary", key="div_btn_csvonly")
+if btn_csv_11:
     try:
-        try:
-            import xcsc_dataapi as xd
-        except ModuleNotFoundError:
-            xd = None  # 兼容：线上没装也不炸
+        # 读取CSV（路径优先，上传为备选）
+        if div_uploaded is not None:
+            df = pd.read_csv(div_uploaded)
+        else:
+            # 走更稳的路径解析
+            _p = resolve_first_existing(div_csv_path)
+            if _p is None:
+                st.error(f"路径无效：{div_csv_path}")
+                st.stop()
+            try:
+                df = pd.read_csv(_p)
+            except UnicodeDecodeError:
+                df = pd.read_csv(_p, encoding="utf-8-sig")
+            except Exception:
+                df = pd.read_csv(_p, engine="python")
 
-        token = xd.get_token(
-            login_name="07780", secret_key="gd5mtd^nsfx7",
-            key="vp77mmk7kwvrkc6g", iv="aoq9kblv3j559ife"
-        )
-        pro_api = xd.pro_api(token)
+        # 字段检查与规范化
+        need = {"trade_date"}
+        if "weighted_dividend_rate_div_nation10" not in df.columns:
+            need |= {"weighted_dividend_rate", "nation10_yield"}
+        if "sh_close" not in df.columns:
+            st.warning("CSV缺少 sh_close（上证收盘）列，右轴将为空。")
 
-        # 直接搬你的函数主体（略微精简版）
-        import time
-        def query_with_retry(path, max_retry=3, delay=0.1, **kwargs):
-            for attempt in range(max_retry):
-                try:
-                    df = pro_api.query(path, **kwargs)
-                    if isinstance(df, str) and '<html>' in df.lower():
-                        raise ValueError("返回的是HTML错误页")
-                    return df
-                except Exception as e:
-                    time.sleep(delay)
-            return pd.DataFrame()
-
-        segments, page = [], 1
-        while page <= 999:
-            time.sleep(0.05)
-            df = query_with_retry('/cmn/api_fm_cmn_trea_ror', current_page=str(page))
-            if df.empty: break
-            segments.append(df); page += 1
-        if not segments:
-            return pd.DataFrame(columns=['trade_date','nation10_yield'])
-
-        all_data = pd.concat(segments, ignore_index=True)
-        if 'trd_date' not in all_data.columns or 'trea_ror_10y' not in all_data.columns:
-            return pd.DataFrame(columns=['trade_date','nation10_yield'])
-
-        out = (all_data.rename(columns={'trd_date': 'trade_date', 'trea_ror_10y': 'nation10_yield'})
-                        .copy())
-        out['trade_date'] = pd.to_datetime(out['trade_date'], errors='coerce')
-        out['nation10_yield'] = pd.to_numeric(out['nation10_yield'], errors='coerce')
-        out = (out.dropna(subset=['trade_date','nation10_yield'])
-                  .sort_values('trade_date')
-                  .drop_duplicates('trade_date', keep='last'))
-
-        # 单位自适配：若是小数（中位数<1），转为百分点
-        if out['nation10_yield'].median() < 1:
-            out['nation10_yield'] = out['nation10_yield'] * 100.0
-        return out[['trade_date','nation10_yield']]
-    except Exception as e:
-        st.warning(f"获取10Y国债失败：{e}")
-        return pd.DataFrame(columns=['trade_date','nation10_yield'])
-
-def _fetch_sh_index_daily(start_date_str, end_date_str):
-    if xd is None:
-        st.info("未安装 xcsc_dataapi，已跳过上证综指数据获取。")
-        return pd.DataFrame(columns=["date", "close"])
-    try:
-        # import xcsc_dataapi as xd
-        # token = xd.get_token(
-        #     login_name="07780", secret_key="gd5mtd^nsfx7",
-        #     key="vp77mmk7kwvrkc6g", iv="aoq9kblv3j559ife"
-        # )
-        # pro_api = xd.pro_api(token)
-
-        import time
-        def query_with_retry(path, max_retry=3, delay=0.02, **kwargs):
-            for attempt in range(max_retry):
-                try:
-                    df = pro_api.query(path, **kwargs)
-                    if isinstance(df, str) and '<html>' in df.lower():
-                        raise ValueError("返回的是HTML错误页")
-                    return df
-                except Exception as e:
-                    time.sleep(delay)
-            return pd.DataFrame()
-
-        segs, page = [], 1
-        while True:
-            time.sleep(0.02)
-            df = query_with_retry('/indx/api_fm_prd_indx_quot',
-                                  current_page=str(page),
-                                  indx_cd='000001',
-                                  trd_strt_date=start_date_str,
-                                  trd_end_date=end_date_str)
-            if df.empty: break
-            segs.append(df); page += 1
-        if not segs:
-            return pd.DataFrame(columns=['trade_date','sh_close'])
-
-        all_data = (pd.concat(segs, ignore_index=True)
-                      .sort_values('upt_time')
-                      .drop_duplicates(['indx_cd','trd_date'], keep='last'))
-        all_data['trd_date'] = pd.to_datetime(all_data['trd_date'])
-        out = all_data[['trd_date','clqn_prc']].rename(columns={'trd_date':'trade_date','clqn_prc':'sh_close'})
-        out['sh_close'] = pd.to_numeric(out['sh_close'], errors='coerce')
-        out = out.dropna().sort_values('trade_date').drop_duplicates('trade_date', keep='last')
-        return out
-    except Exception as e:
-        st.warning(f"获取上证综指失败：{e}")
-        return pd.DataFrame(columns=['trade_date','sh_close'])
-
-# ---- 主逻辑：读结果CSV -> 合并10Y -> 计算比值 -> 叠加上证综指 ----
-btn = st.button("生成图表", type="primary",key="div_btn")
-if btn:
-    try:
-        base = pd.read_csv(out_file_path, dtype={'trade_date': str})
-        if base.empty or 'weighted_dividend_rate' not in base.columns:
-            st.error("结果CSV缺少 `weighted_dividend_rate` 列或为空。")
+        missing = need - set(df.columns)
+        if missing:
+            st.error(f"CSV 缺少必要列：{sorted(missing)}")
             st.stop()
-        base['trade_date'] = pd.to_datetime(base['trade_date'], errors='coerce')
-        base = (base.sort_values('trade_date')
-                    .drop_duplicates('trade_date', keep='last')
-                    .dropna(subset=['trade_date']))
 
-        # 时间过滤（可选）
-        if custom_start:
-            try:
-                start_d = datetime.strptime(custom_start, "%Y%m%d")
-                base = base[base['trade_date'] >= start_d]
-            except:
-                st.warning("起始日格式应为 YYYYMMDD，已忽略。")
-        if custom_end:
-            try:
-                end_d = datetime.strptime(custom_end, "%Y%m%d")
-                base = base[base['trade_date'] <= end_d]
-            except:
-                st.warning("结束日格式应为 YYYYMMDD，已忽略。")
+        df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
+        df = df.dropna(subset=["trade_date"]).sort_values("trade_date").drop_duplicates("trade_date", keep="last")
 
-        if base.empty:
-            st.warning("时间过滤后数据为空。"); st.stop()
+        # 时间过滤
+        if div_start:
+            try: df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
+            except: st.warning("起始日格式应为 YYYYMMDD，已忽略。")
+        if div_end:
+            try: df = df[df["trade_date"] <= pd.to_datetime(div_end,   format="%Y%m%d")]
+            except: st.warning("结束日格式应为 YYYYMMDD，已忽略。")
 
-        # 拉 10Y 国债并对齐
-        ten_y = _fetch_treasury_10y_via_api()
-        if ten_y.empty:
-            st.warning("10Y 国债数据为空，相关图表已跳过。")
-        # if ten_y.empty:
-        #     st.error("未能获取十年国债收益率。"); st.stop()
+        if df.empty:
+            st.warning("过滤后无数据。"); st.stop()
 
-        ten_y = (ten_y.set_index('trade_date').resample('D').asfreq())
-        fv = ten_y['nation10_yield'].first_valid_index()
-        if fv is not None:
-            ten_y.loc[fv:, 'nation10_yield'] = ten_y.loc[fv:, 'nation10_yield'].ffill()
-        ten_y = ten_y.reset_index()
+        # 统一单位（可选）
+        # 若勾选，则把 weighted_dividend_rate 和 nation10_yield 统一乘以100
+        if unify_unit and {"weighted_dividend_rate","nation10_yield"}.issubset(df.columns):
+            df["weighted_dividend_rate"] = pd.to_numeric(df["weighted_dividend_rate"], errors="coerce") * 100.0
+            df["nation10_yield"] = pd.to_numeric(df["nation10_yield"], errors="coerce") * 100.0
 
-        df = base.merge(ten_y, on='trade_date', how='left')
-        df['nation10_yield'] = df['nation10_yield'].ffill()
-        df['ratio'] = df['weighted_dividend_rate'] / df['nation10_yield']
+        # 计算或读取比值
+        if "weighted_dividend_rate_div_nation10" in df.columns:
+            df["ratio"] = pd.to_numeric(df["weighted_dividend_rate_div_nation10"], errors="coerce")
+        else:
+            df["weighted_dividend_rate"] = pd.to_numeric(df["weighted_dividend_rate"], errors="coerce")
+            df["nation10_yield"]        = pd.to_numeric(df["nation10_yield"],        errors="coerce")
+            df["ratio"] = df["weighted_dividend_rate"] / df["nation10_yield"]
 
-        # 计算均值±1σ
-        mu = float(pd.to_numeric(df['ratio'], errors='coerce').mean())
-        sd = float(pd.to_numeric(df['ratio'], errors='coerce').std(ddof=1))
+        # 上证综指
+        if "sh_close" in df.columns:
+            df["sh_close"] = pd.to_numeric(df["sh_close"], errors="coerce")
 
-        # 上证综指（右轴）
-        start_str = df['trade_date'].min().strftime("%Y-%m-%d")
-        end_str   = df['trade_date'].max().strftime("%Y-%m-%d")
-        sh = _fetch_sh_index_daily(start_str, end_str)
+        # 均值±1σ（对 ratio）
+        s = pd.to_numeric(df["ratio"], errors="coerce").replace([np.inf, -np.inf], np.nan).dropna()
+        mu = float(s.mean()) if len(s) else 0.0
+        sd = float(s.std(ddof=1)) if len(s) else 1.0
+        if sd == 0 or np.isnan(sd): sd = 1.0
 
-        # 画图（Plotly双轴）
+        # 画图（Plotly 双轴）
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df['trade_date'], y=df['ratio'],
-                                 mode='lines', name='300股息率/十年国债(%)', yaxis='y1'))
-        if show_bands_11:
-            fig.add_trace(go.Scatter(x=df['trade_date'], y=[mu]*len(df), mode='lines',
-                                     name='均值', line=dict(dash='dot'), yaxis='y1'))
-            fig.add_trace(go.Scatter(x=df['trade_date'], y=[mu+sd]*len(df), mode='lines',
-                                     name='均值+1σ', line=dict(dash='dash'), yaxis='y1'))
-            fig.add_trace(go.Scatter(x=df['trade_date'], y=[mu-sd]*len(df), mode='lines',
-                                     name='均值-1σ', line=dict(dash='dash'), yaxis='y1'))
+        fig.add_trace(go.Scatter(
+            x=df["trade_date"], y=df["ratio"], mode="lines",
+            name="300股息率/十年国债", yaxis="y1"
+        ))
 
-        if not sh.empty:
-            fig.add_trace(go.Scatter(x=sh['trade_date'], y=sh['sh_close'],
-                                     mode='lines', name='上证综指', yaxis='y2'))
+        if show_bands_11:
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu]*len(df),     mode="lines", name="均值",   line=dict(dash="dot"),  yaxis="y1"))
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu+sd]*len(df),  mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu-sd]*len(df),  mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
+
+        if "sh_close" in df.columns and df["sh_close"].notna().any():
+            fig.add_trace(go.Scatter(
+                x=df["trade_date"], y=df["sh_close"], mode="lines",
+                name="上证综指", yaxis="y2"
+            ))
 
         fig.update_layout(
-            template='plotly_dark',
+            template="plotly_dark",
             height=560,
-            legend=dict(orientation='h', x=0, y=1.12),
+            legend=dict(orientation="h", x=0, y=1.12),
             margin=dict(l=60, r=70, t=40, b=40),
-            xaxis=dict(title='日期'),
-            # 左轴“倒置”，与原Matplotlib版一致（数值越大越靠下）
-            yaxis=dict(title='股息率/十年国债(%)', autorange='reversed'),
-            yaxis2=dict(title='上证综指', side='right', overlaying='y'),
+            xaxis=dict(title="日期"),
+            # 左轴保持与你原版一致：倒置显示
+            yaxis=dict(title="股息率/十年国债", autorange="reversed"),
+            yaxis2=dict(title="上证综指", side="right", overlaying="y")
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # 数据下载
+        # 下载当前视图数据
         with st.expander("下载当前视图数据"):
-            st.download_button("下载CSV", data=df.to_csv(index=False).encode('utf-8-sig'),
-                               file_name='dividend_ratio_10y_merged.csv', mime='text/csv')
+            out_cols = ["trade_date", "ratio"]
+            if "weighted_dividend_rate" in df.columns: out_cols.append("weighted_dividend_rate")
+            if "nation10_yield"        in df.columns: out_cols.append("nation10_yield")
+            if "sh_close"              in df.columns: out_cols.append("sh_close")
+            export_df = df[out_cols].copy()
+            st.download_button(
+                "下载CSV",
+                data=export_df.to_csv(index=False).encode("utf-8-sig"),
+                file_name="1.1_div_rate_div_10y_with_sh.csv",
+                mime="text/csv"
+            )
 
     except Exception as e:
-        st.error(f"生成图表失败：{e}")
+        st.error(f"生成图表失败：{type(e).__name__}: {e}")
+
 
 ####################
 # ======== 新增：1.2 全A E/P 减 10Y 国债（风险溢价） ========
@@ -1246,6 +1171,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
