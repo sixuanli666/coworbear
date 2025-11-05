@@ -372,128 +372,95 @@ else:
                         st.error(f"加载图片失败: {img_path}\n错误: {e}")
 
 
-# ======== 1.1（纯CSV版）：300指数股息率 / 十年国债 × 上证综指（右轴） ========
+# ======== 1.1（只读CSV·固定列名） ========
 st.markdown("---")
 st.subheader("1.1 300指数股息率 / 十年国债 × 上证综指（右轴）")
 
 with st.expander("指标说明", expanded=False):
-    st.write("""
-    本版仅离线读CSV，不调用任何接口。CSV需至少包含：
-    - trade_date：日期
-    - weighted_dividend_rate：300指数（或你需要的口径）股息率（与国债收益率单位一致，小数或百分点均可）
-    - nation10_yield：十年期国债收益率（与股息率单位一致）
-    - sh_close：上证综指收盘价（用于右轴）
-    若已有比值列（如 weighted_dividend_rate_div_nation10），也可直接选用。
-    """)
+    st.write("只读本地CSV：trade_date, weighted_dividend_rate, sh_close, nation10_yield, weighted_dividend_rate_div_nation10。")
 
-# ---- 侧边栏参数 ----
 with st.sidebar:
-    st.header("1.1 300指数股息率/十年国债·参数（CSV版）")
+    st.header("1.1 参数（CSV 固定列名）")
     div_csv_path = st.text_input(
-        "CSV路径（含 trade_date, weighted_dividend_rate, nation10_yield, sh_close）",
-        value=get_path("div_result_csv"),  # 你原本的路径键
-        key="div_csv_path_csvonly"
+        "CSV路径",
+        value=get_path("div_result_csv"),  # 你原来的路径键
+        key="div_csv_path_fixed"
     )
-    # 也支持上传
-    div_uploaded = st.file_uploader(
-        "或上传CSV（留空则使用路径）",
-        type=["csv"],
-        key="div_csv_upload_csvonly"
-    )
-    # 时间过滤
-    div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_csvonly")
-    div_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_csvonly")
-    # 是否显示均值带
-    show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_csvonly")
-    # 单位说明：若二者同为小数或同为百分比，比例不受影响；若不一致，请勾选统一
-    unify_unit = st.checkbox("若单位不一致，统一为百分比(×100)", value=False, key="div_unit_unify")
+    div_uploaded = st.file_uploader("或上传CSV（留空则使用路径）", type=["csv"], key="div_csv_upload_fixed")
+    div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
+    div_end   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
+    show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
 
-btn_csv_11 = st.button("生成图表（只读CSV）", type="primary", key="div_btn_csvonly")
+def _read_csv_smart(src):
+    # 自动识别分隔符（逗号/制表符），容错编码
+    try:
+        return pd.read_csv(src, sep=None, engine="python")
+    except UnicodeDecodeError:
+        return pd.read_csv(src, sep=None, engine="python", encoding="utf-8-sig")
+
+btn_csv_11 = st.button("生成图表（只读CSV）", type="primary", key="div_btn_fixed")
 if btn_csv_11:
     try:
-        # 读取CSV（路径优先，上传为备选）
+        # 读取
         if div_uploaded is not None:
-            df = pd.read_csv(div_uploaded)
+            df = _read_csv_smart(div_uploaded)
         else:
-            # 走更稳的路径解析
             _p = resolve_first_existing(div_csv_path)
             if _p is None:
                 st.error(f"路径无效：{div_csv_path}")
                 st.stop()
-            try:
-                df = pd.read_csv(_p)
-            except UnicodeDecodeError:
-                df = pd.read_csv(_p, encoding="utf-8-sig")
-            except Exception:
-                df = pd.read_csv(_p, engine="python")
+            df = _read_csv_smart(_p)
 
-        # 字段检查与规范化
-        need = {"trade_date"}
-        if "weighted_dividend_rate_div_nation10" not in df.columns:
-            need |= {"weighted_dividend_rate", "nation10_yield"}
-        if "sh_close" not in df.columns:
-            st.warning("CSV缺少 sh_close（上证收盘）列，右轴将为空。")
-
-        missing = need - set(df.columns)
-        if missing:
-            st.error(f"CSV 缺少必要列：{sorted(missing)}")
+        # 固定列名校验
+        need = ["trade_date", "weighted_dividend_rate", "sh_close",
+                "nation10_yield", "weighted_dividend_rate_div_nation10"]
+        miss = [c for c in need if c not in df.columns]
+        if miss:
+            st.error(f"CSV 缺少必要列：{miss}\n读取到的列：{list(df.columns)}")
             st.stop()
 
+        # 规范与过滤
         df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
-        df = df.dropna(subset=["trade_date"]).sort_values("trade_date").drop_duplicates("trade_date", keep="last")
-
-        # 时间过滤
+        df = (df.dropna(subset=["trade_date"])
+                .sort_values("trade_date")
+                .drop_duplicates("trade_date", keep="last"))
         if div_start:
             try: df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
             except: st.warning("起始日格式应为 YYYYMMDD，已忽略。")
         if div_end:
             try: df = df[df["trade_date"] <= pd.to_datetime(div_end,   format="%Y%m%d")]
             except: st.warning("结束日格式应为 YYYYMMDD，已忽略。")
-
         if df.empty:
             st.warning("过滤后无数据。"); st.stop()
 
-        # 统一单位（可选）
-        # 若勾选，则把 weighted_dividend_rate 和 nation10_yield 统一乘以100
-        if unify_unit and {"weighted_dividend_rate","nation10_yield"}.issubset(df.columns):
-            df["weighted_dividend_rate"] = pd.to_numeric(df["weighted_dividend_rate"], errors="coerce") * 100.0
-            df["nation10_yield"] = pd.to_numeric(df["nation10_yield"], errors="coerce") * 100.0
+        # 数值化
+        for c in ["weighted_dividend_rate", "nation10_yield",
+                  "weighted_dividend_rate_div_nation10", "sh_close"]:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
 
-        # 计算或读取比值
-        if "weighted_dividend_rate_div_nation10" in df.columns:
-            df["ratio"] = pd.to_numeric(df["weighted_dividend_rate_div_nation10"], errors="coerce")
-        else:
-            df["weighted_dividend_rate"] = pd.to_numeric(df["weighted_dividend_rate"], errors="coerce")
-            df["nation10_yield"]        = pd.to_numeric(df["nation10_yield"],        errors="coerce")
-            df["ratio"] = df["weighted_dividend_rate"] / df["nation10_yield"]
+        # 使用你已给好的比值列；它前期为 NaN 也没事
+        df["ratio"] = df["weighted_dividend_rate_div_nation10"]
 
-        # 上证综指
-        if "sh_close" in df.columns:
-            df["sh_close"] = pd.to_numeric(df["sh_close"], errors="coerce")
-
-        # 均值±1σ（对 ratio）
-        s = pd.to_numeric(df["ratio"], errors="coerce").replace([np.inf, -np.inf], np.nan).dropna()
+        # 统计只对有效值
+        s = df["ratio"].replace([np.inf, -np.inf], np.nan).dropna()
         mu = float(s.mean()) if len(s) else 0.0
         sd = float(s.std(ddof=1)) if len(s) else 1.0
         if sd == 0 or np.isnan(sd): sd = 1.0
 
-        # 画图（Plotly 双轴）
+        # 画图
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=df["trade_date"], y=df["ratio"], mode="lines",
-            name="300股息率/十年国债", yaxis="y1"
-        ))
+        fig.add_trace(go.Scatter(x=df["trade_date"], y=df["ratio"],
+                                 mode="lines", name="300股息率/十年国债", yaxis="y1"))
+        if show_bands_11 and len(s):
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu]*len(df),
+                                     mode="lines", name="均值", line=dict(dash="dot"), yaxis="y1"))
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu+sd]*len(df),
+                                     mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
+            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu-sd]*len(df),
+                                     mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
 
-        if show_bands_11:
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu]*len(df),     mode="lines", name="均值",   line=dict(dash="dot"),  yaxis="y1"))
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu+sd]*len(df),  mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu-sd]*len(df),  mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
-
-        if "sh_close" in df.columns and df["sh_close"].notna().any():
-            fig.add_trace(go.Scatter(
-                x=df["trade_date"], y=df["sh_close"], mode="lines",
-                name="上证综指", yaxis="y2"
-            ))
+        fig.add_trace(go.Scatter(x=df["trade_date"], y=df["sh_close"],
+                                 mode="lines", name="上证综指", yaxis="y2"))
 
         fig.update_layout(
             template="plotly_dark",
@@ -501,28 +468,24 @@ if btn_csv_11:
             legend=dict(orientation="h", x=0, y=1.12),
             margin=dict(l=60, r=70, t=40, b=40),
             xaxis=dict(title="日期"),
-            # 左轴保持与你原版一致：倒置显示
             yaxis=dict(title="股息率/十年国债", autorange="reversed"),
             yaxis2=dict(title="上证综指", side="right", overlaying="y")
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # 下载当前视图数据
         with st.expander("下载当前视图数据"):
-            out_cols = ["trade_date", "ratio"]
-            if "weighted_dividend_rate" in df.columns: out_cols.append("weighted_dividend_rate")
-            if "nation10_yield"        in df.columns: out_cols.append("nation10_yield")
-            if "sh_close"              in df.columns: out_cols.append("sh_close")
-            export_df = df[out_cols].copy()
             st.download_button(
                 "下载CSV",
-                data=export_df.to_csv(index=False).encode("utf-8-sig"),
-                file_name="1.1_div_rate_div_10y_with_sh.csv",
+                data=df[["trade_date","weighted_dividend_rate","nation10_yield",
+                         "weighted_dividend_rate_div_nation10","sh_close","ratio"]]
+                    .to_csv(index=False).encode("utf-8-sig"),
+                file_name="1.1_div_vs_10y_with_sh.csv",
                 mime="text/csv"
             )
 
     except Exception as e:
         st.error(f"生成图表失败：{type(e).__name__}: {e}")
+
 
 
 ####################
@@ -1171,6 +1134,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
