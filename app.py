@@ -933,9 +933,9 @@ import plotly.graph_objects as go
 # ---------- 侧边栏参数 ----------
 with st.sidebar:
     st.header("3.1 换手率标准差·参数")
-    base_dir_31 = st.text_input("结果目录", value=get_path("turn_std_png_dir"), key="std31_base")
+    # base_dir_31 = st.text_input("结果目录", value=get_path("turn_std_png_dir"), key="std31_base")
     csv_path_31 = st.text_input("全量CSV路径", value=get_path("turn_std_csv"), key="std31_csv")
-    png_dir_31  = st.text_input("PNG目录（可与结果目录相同）", value=base_dir_31, key="std31_pngdir")
+    # png_dir_31  = st.text_input("PNG目录（可与结果目录相同）", value=base_dir_31, key="std31_pngdir")
 
     dt_start_31 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="std31_start")
     dt_end_31   = st.text_input("结束日(YYYYMMDD，可空)", value="", key="std31_end")
@@ -1102,24 +1102,25 @@ else:
             )
 
         # 原PNG预览：根据所选系列展示
-        st.markdown("**离线脚本导出的原图预览（按所选系列）**")
-        cols = st.columns(3)
-        col_idx = 0
-        for name in chosen_series:
-            try:
-                if name == "全A":
-                    p = os.path.join(png_dir_31, "3.1_全A_turn_daily_std_逐年趋势.png")
-                else:
-                    # safe_ind = re.sub(r'[\\/:*?"<>|]', '_', str(name))
-                    p = os.path.join(png_dir_31, f"3.1_{name}_turn_daily_std_逐年趋势.png")
-                if os.path.exists(p):
-                    # with cols[col_idx % 3]:
-                    #     st.image(p, caption=str(name))
-                    with open(p, "rb") as f:
-                        st.download_button(f"下载「{name}」PNG", data=f, file_name=os.path.basename(p), mime="image/png")
-                    col_idx += 1
-            except Exception as e:
-                st.warning(f"读取「{name}」PNG 失败：{e}")
+        # st.markdown("**离线脚本导出的原图预览（按所选系列）**")
+        # cols = st.columns(3)
+        # col_idx = 0
+        # for name in chosen_series:
+        #     try:
+        #         if name == "全A":
+        #             p = os.path.join(png_dir_31, "3.1_全A_turn_daily_std_逐年趋势.png")
+        #         else:
+        #             # safe_ind = re.sub(r'[\\/:*?"<>|]', '_', str(name))
+        #             p = os.path.join(png_dir_31, f"3.1_{name}_turn_daily_std_逐年趋势.png")
+        #         if os.path.exists(p):
+        #             # with cols[col_idx % 3]:
+        #             #     st.image(p, caption=str(name))
+        #             with open(p, "rb") as f:
+        #                 st.download_button(f"下载「{name}」PNG", data=f, file_name=os.path.basename(p), mime="image/png")
+        #             col_idx += 1
+        #     except Exception as e:
+        #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
