@@ -32,7 +32,7 @@ def load_config():
         return json.load(f)
 
 
-CONFIG = load_config("config.json", os.path.getmtime("config.json"))
+CONFIG = load_config()
 
 
 def get_path(key):
@@ -1148,6 +1148,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
