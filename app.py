@@ -554,46 +554,18 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
     return df
 
 
-# from pathlib import Path
 
-# def resolve_first_existing(p: str) -> Path | None:
-#     """更稳的路径解析：按多种基准目录尝试"""
-#     if not p:
-#         return None
-#     cand = []
-#     # 原样
-#     cand.append(Path(p))
-#     # 展开 ~
-#     cand.append(Path(p).expanduser())
-#     # 以当前工作目录为基准
-#     cand.append(Path(os.getcwd()) / p)
-#     cand.append((Path(os.getcwd()) / p).expanduser())
-#     try:
-#         # 以脚本所在目录为基准（streamlit 下 __file__ 也可用）
-#         here = Path(__file__).parent
-#         cand.append(here / p)
-#         cand.append((here / p).expanduser())
-#     except:
-#         pass
-
-#     for c in cand:
-#         try:
-#             if c.exists():
-#                 return c
-#         except:
-#             continue
-#     return None
-# —— 在侧边栏的 1.2 参数区下面，临时加一个小诊断面板 —— #
-with st.sidebar:
-    st.caption("— 1.2 路径诊断 —")
-    st.write("ep_csv_path(原值)：", repr(st.session_state.get("ep_path")))
-    st.write("cwd：", os.getcwd())
-    _resolved = resolve_first_existing(st.session_state.get("ep_path", ""))
-    st.write("解析结果：", repr(str(_resolved) if _resolved else None))
-    st.write("存在性：", os.path.exists(st.session_state.get("ep_path","")))
-    if st.button("恢复默认(1.2)", key="ep_reset_btn"):
-        st.session_state["ep_path"] = get_path("div_result_csv2")
-        st.success(f"已恢复默认：{st.session_state['ep_path']}")
+# —— 读源诊断 —— #
+# with st.sidebar:
+#     st.caption("— 1.2 路径诊断 —")
+#     st.write("ep_csv_path(原值)：", repr(st.session_state.get("ep_path")))
+#     st.write("cwd：", os.getcwd())
+#     _resolved = resolve_first_existing(st.session_state.get("ep_path", ""))
+#     st.write("解析结果：", repr(str(_resolved) if _resolved else None))
+#     st.write("存在性：", os.path.exists(st.session_state.get("ep_path","")))
+#     if st.button("恢复默认(1.2)", key="ep_reset_btn"):
+#         st.session_state["ep_path"] = get_path("div_result_csv2")
+#         st.success(f"已恢复默认：{st.session_state['ep_path']}")
 
 
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
@@ -1148,6 +1120,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
