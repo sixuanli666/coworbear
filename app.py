@@ -378,6 +378,17 @@ st.subheader("1.1 300指数股息率 / 十年国债 × 上证综指（右轴）"
 
 with st.expander("指标说明", expanded=False):
     st.write("只读本地CSV：trade_date, weighted_dividend_rate, sh_close, nation10_yield, weighted_dividend_rate_div_nation10。")
+    
+# —— 1.1 读源诊断（放在 1.1 区域内，按钮上方即可）——
+with st.sidebar:
+    st.caption("— 1.1 路径诊断 —")
+    st.write("配置默认：", get_path("div_result_csv"))
+    _raw = st.session_state.get("div_csv_path_fixed", "")
+    st.write("输入框当前值：", _raw)
+    _resolved = resolve_first_existing(_raw)
+    st.write("解析后路径：", str(_resolved) if _resolved else None)
+    st.write("是否存在：", os.path.exists(_raw))
+    st.write("是否使用上传文件：", div_uploaded is not None)
 
 with st.sidebar:
     st.header("1.1 参数（CSV 固定列名）")
@@ -1134,6 +1145,7 @@ else:
                     col_idx += 1
             except Exception as e:
                 st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
