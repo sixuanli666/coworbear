@@ -1014,7 +1014,7 @@ st.markdown("---")
 st.subheader("3.1 换手率横截面标准差（全A + 行业）")
 with st.expander("指标说明", expanded=False):
     st.write(
-        ""
+        """
         - 本页汇总：时间过滤、按日/月/季聚合、平滑窗口、单位切换（小数/百分比），并把全A与行业统一对比。
      
         """
@@ -1118,6 +1118,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
