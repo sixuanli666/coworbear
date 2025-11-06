@@ -1034,12 +1034,12 @@ else:
     df31 = _agg_df(df31, agg_rule_31)
 
     # 单位
-    if unit_view_31 == "百分比(%)":
-        df31["turn_std_view"] = df31["turn_daily_std"] * 100.0
-        y_label = "turn_daily_std(%)"
-    else:
-        df31["turn_std_view"] = df31["turn_daily_std"]
-        y_label = "turn_daily_std"
+    # if unit_view_31 == "百分比(%)":
+    #     df31["turn_std_view"] = df31["turn_daily_std"] * 100.0
+    #     y_label = "turn_daily_std(%)"
+    # else:
+    #     df31["turn_std_view"] = df31["turn_daily_std"]
+    #     y_label = "turn_daily_std"
 
     # 系列集合：把“全A”也当作一个选项和行业并列
     industries_all = sorted(
@@ -1115,6 +1115,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
