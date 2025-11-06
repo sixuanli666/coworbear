@@ -378,7 +378,8 @@ st.markdown("---")
 st.subheader("1.1 300指数股息率 / 十年国债 × 上证综指（右轴）")
 
 with st.expander("指标说明", expanded=False):
-    st.write("只读本地CSV：trade_date, weighted_dividend_rate, sh_close, nation10_yield, weighted_dividend_rate_div_nation10。")
+    st.write("300指数（剔除了金融股）的股息率与十年期国债收益率的比较。股息率是指股票的年度股息除以股价，而十年期国债收益率则是债券投资的回报率。图中展示了这两者的变化趋势。
+蓝色虚线表示平均值，+1倍和-1倍标准差，图示了股息率与国债收益率的相对收益率情况。(已增加上证综指)")
     
 
 
@@ -412,7 +413,7 @@ def _read_csv_smart(src):
     except UnicodeDecodeError:
         return pd.read_csv(src, sep=None, engine="python", encoding="utf-8-sig")
 
-btn_csv_11 = st.button("生成图表（只读CSV）", type="primary", key="div_btn_fixed")
+btn_csv_11 = st.button("生成图表", type="primary", key="div_btn_fixed")
 if btn_csv_11:
     try:
         # 读取
@@ -1115,6 +1116,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
