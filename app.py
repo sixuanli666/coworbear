@@ -383,7 +383,7 @@ with st.expander("指标说明", expanded=False):
 
 
 with st.sidebar:
-    st.header("1.1 300指数股息率 / 十年国债 × 上证综指·参数")
+    st.header("1.1 300指数股息率 / 十年国债 × 上证综指")
     div_csv_path = st.text_input(
         "CSV路径",
         value=get_path("div_result_csv"),  # 你原来的路径键
@@ -1118,6 +1118,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
