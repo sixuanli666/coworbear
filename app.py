@@ -1041,6 +1041,9 @@ else:
     #     df31["turn_std_view"] = df31["turn_daily_std"]
     #     y_label = "turn_daily_std"
 
+    df31["turn_std_view"] = df31["turn_daily_std"]
+        y_label = "turn_daily_std"
+
     # 系列集合：把“全A”也当作一个选项和行业并列
     industries_all = sorted(
         df31.loc[df31["scope"]=="行业","level1_industry_name"].dropna().unique().tolist()
@@ -1115,6 +1118,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
