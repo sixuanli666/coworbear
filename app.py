@@ -416,14 +416,11 @@ btn_csv_11 = st.button("生成图表（只读CSV）", type="primary", key="div_b
 if btn_csv_11:
     try:
         # 读取
-        if div_uploaded is not None:
-            df = _read_csv_smart(div_uploaded)
-        else:
-            _p = resolve_first_existing(div_csv_path)
-            if _p is None:
-                st.error(f"路径无效：{div_csv_path}")
-                st.stop()
-            df = _read_csv_smart(_p)
+        _p = resolve_first_existing(div_csv_path)
+        if _p is None:
+            st.error(f"路径无效：{div_csv_path}")
+            st.stop()
+        df = _read_csv_smart(_p)
 
         # 固定列名校验
         need = ["trade_date", "weighted_dividend_rate", "sh_close",
@@ -1118,6 +1115,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
