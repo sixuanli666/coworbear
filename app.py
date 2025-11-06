@@ -383,7 +383,7 @@ with st.expander("指标说明", expanded=False):
 
 
 with st.sidebar:
-    st.header("1.1 参数（CSV 固定列名）")
+    st.header("1.1 300指数股息率 / 十年国债 × 上证综指·参数")
     div_csv_path = st.text_input(
         "CSV路径",
         value=get_path("div_result_csv"),  # 你原来的路径键
@@ -939,7 +939,7 @@ with st.sidebar:
 
     agg_rule_31   = st.selectbox("可选聚合频率", ["不聚合(逐日)", "月度", "季度"], index=0, key="std31_agg")
     smooth_win_31 = st.number_input("平滑窗口（移动平均，期）", min_value=1, max_value=60, value=3, step=1, key="std31_smooth")
-    unit_view_31  = st.selectbox("展示单位", ["小数", "百分比(%)"], index=0, key="std31_unit")
+    # unit_view_31  = st.selectbox("展示单位", ["小数", "百分比(%)"], index=0, key="std31_unit")
 
 # ---------- 工具函数 ----------
 def _parse_dt_31(s: str):
@@ -1115,6 +1115,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
