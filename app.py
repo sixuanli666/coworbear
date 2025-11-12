@@ -655,7 +655,7 @@ with st.expander("指标说明", expanded=False):
 # 侧边栏参数
 with st.sidebar:
     st.header("2.1 大小盘轮动·参数")
-    base_dir = st.text_input("CSV 目录", value=get_path("turn_std_png_dir"), key="rot_dir")
+    # base_dir = st.text_input("CSV 目录", value=get_path("turn_std_png_dir"), key="rot_dir")
     path_daily   = st.text_input("日度CSV", value=get_path("rot_daily_csv"), key="rot_path_daily")
     path_monthly = st.text_input("月度CSV", value=get_path("rot_month_csv"), key="rot_path_month")
     path_quarter = st.text_input("季度CSV", value=get_path("rot_quarter_csv"), key="rot_path_quarter")
@@ -1118,6 +1118,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
