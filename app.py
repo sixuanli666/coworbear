@@ -308,14 +308,14 @@ st.subheader('单因子分数图')
 with st.expander("由于建模过程中发现未来16周指数收益率回归效果最好，因此仅展示各因子与上证综指指数未来16周IC关系：", expanded=False):
     st.write("""
    
--[h=16] score_h16_predret vs ret_fut_16w: Pearson=0.2237  Spearman(IC)=0.2260
--[h=16] score_h16_noint  vs ret_fut_16w: Pearson=0.0700 Spearman(IC)=0.1638
--[h=16] f41  vs ret_fut_16w: Pearson=-0.0784 Spearman(IC)=-0.0885
--[h=16] f42  vs ret_fut_16w: Pearson=0.2156 Spearman(IC)=0.1296
--[h=16] f43  vs ret_fut_16w: Pearson=-0.1715 Spearman(IC)=-0.2132
--[h=16] f45  vs ret_fut_16w: Pearson=-0.0773 Spearman(IC)=-0.1000
--[h=16] f49  vs ret_fut_16w: Pearson=0.0228 Spearman(IC)=0.0655
--[h=16] f411  vs ret_fut_16w: Pearson=-0.0958 Spearman(IC)=-0.1141
+- [h=16] score_h16_predret vs ret_fut_16w: Pearson=0.2237  Spearman(IC)=0.2260
+- [h=16] score_h16_noint  vs ret_fut_16w: Pearson=0.0700 Spearman(IC)=0.1638
+- [h=16] f41  vs ret_fut_16w: Pearson=-0.0784 Spearman(IC)=-0.0885
+- [h=16] f42  vs ret_fut_16w: Pearson=0.2156 Spearman(IC)=0.1296
+- [h=16] f43  vs ret_fut_16w: Pearson=-0.1715 Spearman(IC)=-0.2132
+- [h=16] f45  vs ret_fut_16w: Pearson=-0.0773 Spearman(IC)=-0.1000
+- [h=16] f49  vs ret_fut_16w: Pearson=0.0228 Spearman(IC)=0.0655
+- [h=16] f411  vs ret_fut_16w: Pearson=-0.0958 Spearman(IC)=-0.1141
 
 
     """)
@@ -1133,6 +1133,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
