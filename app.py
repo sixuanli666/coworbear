@@ -305,56 +305,18 @@ else:
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
 
-with st.expander("目各因子与上证综指指数IC关系如下：", expanded=False):
+with st.expander("由于建模过程中发现未来16周指数收益率回归效果最好，因此仅展示各因子与上证综指指数未来16周IC关系：", expanded=False):
     st.write("""
-    [h=1] score_h1_predret vs ret_fut_1w: Pearson=-0.0492  Spearman(IC)=-0.0646
-[h=1] score_h1_noint  vs ret_fut_1w: Pearson=-0.0407 Spearman(IC)=-0.0323
-[h=1] f41  vs ret_fut_1w: Pearson=0.0563 Spearman(IC)=0.0745
-[h=1] f42  vs ret_fut_1w: Pearson=0.0823 Spearman(IC)=0.0783
-[h=1] f43  vs ret_fut_1w: Pearson=-0.0691 Spearman(IC)=-0.0366
-[h=1] f45  vs ret_fut_1w: Pearson=-0.0293 Spearman(IC)=-0.0313
-[h=1] f49  vs ret_fut_1w: Pearson=-0.0755 Spearman(IC)=-0.0538
-[h=1] f411  vs ret_fut_1w: Pearson=-0.0370 Spearman(IC)=-0.0283
-[h=4] score_h4_predret vs ret_fut_4w: Pearson=0.0855  Spearman(IC)=0.1117
-[h=4] score_h4_noint  vs ret_fut_4w: Pearson=0.0041 Spearman(IC)=0.0050
-[h=4] f41  vs ret_fut_4w: Pearson=0.0289 Spearman(IC)=0.0726
-[h=4] f42  vs ret_fut_4w: Pearson=0.0935 Spearman(IC)=0.0987
-[h=4] f43  vs ret_fut_4w: Pearson=-0.1099 Spearman(IC)=-0.1256
-[h=4] f45  vs ret_fut_4w: Pearson=-0.0668 Spearman(IC)=-0.0794
-[h=4] f49  vs ret_fut_4w: Pearson=-0.0920 Spearman(IC)=-0.0578
-[h=4] f411  vs ret_fut_4w: Pearson=-0.0735 Spearman(IC)=-0.0728
-[h=8] score_h8_predret vs ret_fut_8w: Pearson=0.1347  Spearman(IC)=0.1607
-[h=8] score_h8_noint  vs ret_fut_8w: Pearson=0.0704 Spearman(IC)=0.1284
-[h=8] f41  vs ret_fut_8w: Pearson=-0.0270 Spearman(IC)=0.0286
-[h=8] f42  vs ret_fut_8w: Pearson=0.0247 Spearman(IC)=0.0545
-[h=8] f43  vs ret_fut_8w: Pearson=-0.1240 Spearman(IC)=-0.1500
-[h=8] f45  vs ret_fut_8w: Pearson=-0.0648 Spearman(IC)=-0.0810
-[h=8] f49  vs ret_fut_8w: Pearson=-0.0699 Spearman(IC)=-0.0164
-[h=8] f411  vs ret_fut_8w: Pearson=-0.0854 Spearman(IC)=-0.0918
-[h=12] score_h12_predret vs ret_fut_12w: Pearson=0.1553  Spearman(IC)=0.1811
-[h=12] score_h12_noint  vs ret_fut_12w: Pearson=0.0868 Spearman(IC)=0.1436
-[h=12] f41  vs ret_fut_12w: Pearson=-0.0950 Spearman(IC)=-0.0684
-[h=12] f42  vs ret_fut_12w: Pearson=0.0853 Spearman(IC)=0.1068
-[h=12] f43  vs ret_fut_12w: Pearson=-0.1524 Spearman(IC)=-0.2022
-[h=12] f45  vs ret_fut_12w: Pearson=-0.0670 Spearman(IC)=-0.0853
-[h=12] f49  vs ret_fut_12w: Pearson=0.0027 Spearman(IC)=0.0652
-[h=12] f411  vs ret_fut_12w: Pearson=-0.0942 Spearman(IC)=-0.1202
-[h=16] score_h16_predret vs ret_fut_16w: Pearson=0.2237  Spearman(IC)=0.2260
-[h=16] score_h16_noint  vs ret_fut_16w: Pearson=0.0700 Spearman(IC)=0.1638
-[h=16] f41  vs ret_fut_16w: Pearson=-0.0784 Spearman(IC)=-0.0885
-[h=16] f42  vs ret_fut_16w: Pearson=0.2156 Spearman(IC)=0.1296
-[h=16] f43  vs ret_fut_16w: Pearson=-0.1715 Spearman(IC)=-0.2132
-[h=16] f45  vs ret_fut_16w: Pearson=-0.0773 Spearman(IC)=-0.1000
-[h=16] f49  vs ret_fut_16w: Pearson=0.0228 Spearman(IC)=0.0655
-[h=16] f411  vs ret_fut_16w: Pearson=-0.0958 Spearman(IC)=-0.1141
-[h=20] score_h20_predret vs ret_fut_20w: Pearson=0.2377  Spearman(IC)=0.2143
-[h=20] score_h20_noint  vs ret_fut_20w: Pearson=0.0737 Spearman(IC)=0.1791
-[h=20] f41  vs ret_fut_20w: Pearson=-0.0567 Spearman(IC)=-0.1192
-[h=20] f42  vs ret_fut_20w: Pearson=0.2365 Spearman(IC)=0.1295
-[h=20] f43  vs ret_fut_20w: Pearson=-0.1637 Spearman(IC)=-0.2138
-[h=20] f45  vs ret_fut_20w: Pearson=-0.0883 Spearman(IC)=-0.0985
-[h=20] f49  vs ret_fut_20w: Pearson=0.0095 Spearman(IC)=0.0436
-[h=20] f411  vs ret_fut_20w: Pearson=-0.0937 Spearman(IC)=-0.1006
+   
+-[h=16] score_h16_predret vs ret_fut_16w: Pearson=0.2237  Spearman(IC)=0.2260
+-[h=16] score_h16_noint  vs ret_fut_16w: Pearson=0.0700 Spearman(IC)=0.1638
+-[h=16] f41  vs ret_fut_16w: Pearson=-0.0784 Spearman(IC)=-0.0885
+-[h=16] f42  vs ret_fut_16w: Pearson=0.2156 Spearman(IC)=0.1296
+-[h=16] f43  vs ret_fut_16w: Pearson=-0.1715 Spearman(IC)=-0.2132
+-[h=16] f45  vs ret_fut_16w: Pearson=-0.0773 Spearman(IC)=-0.1000
+-[h=16] f49  vs ret_fut_16w: Pearson=0.0228 Spearman(IC)=0.0655
+-[h=16] f411  vs ret_fut_16w: Pearson=-0.0958 Spearman(IC)=-0.1141
+
 
     """)
 
@@ -1171,6 +1133,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
