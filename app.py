@@ -103,50 +103,56 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
                      show_bands: bool, mu: float, sigma: float, k: float,
                      signals: pd.DataFrame, shift_weeks: int = 0):
 
-
     fig = go.Figure()
 
-# === 新增：分数线的 x 轴可以右移 ===
+    # === 分数线的 x 轴可以右移 ===
     if shift_weeks and shift_weeks != 0:
-        # 1 周按 7 天算；需要 pandas 的 Timedelta
+        # 1 周按 7 天算
         score_x = df['date'] + pd.to_timedelta(shift_weeks * 7, unit='D')
     else:
         score_x = df['date']
 
-    # 分数（左轴）
+    # 分数（左轴）——这里要用 score_x，而不是 df['date']！
     fig.add_trace(go.Scatter(
-        x=df['date'], y=df[score_col], mode='lines', name=score_col,
-        yaxis='y1'))
+        x=score_x, y=df[score_col], mode='lines', name=score_col,
+        yaxis='y1'
+    ))
 
-    # 指数（右轴）
+    # 指数（右轴）——不平移
     fig.add_trace(go.Scatter(
         x=df['date'], y=df[index_col], mode='lines', name=index_col,
-        yaxis='y2'))
+        yaxis='y2'
+    ))
 
-    # 均值与带
+    # 均值与带 —— 仍然用原始日期
     if show_bands:
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu]*len(df), mode='lines', name='均值',
-            line=dict(dash='dot'), yaxis='y1'))
+            line=dict(dash='dot'), yaxis='y1'
+        ))
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu + k*sigma]*len(df), mode='lines', name=f'+{k}σ',
-            line=dict(dash='dash'), yaxis='y1'))
+            line=dict(dash='dash'), yaxis='y1'
+        ))
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu - 1.0*sigma]*len(df), mode='lines', name='-1σ',
-            line=dict(dash='dash'), yaxis='y1'))
+            line=dict(dash='dash'), yaxis='y1'
+        ))
 
-    # 信号点画在指数轴上
+    # 信号点画在指数轴上（不平移）
     if not signals.empty:
         buys = signals[signals['type'] == '强买']
         sells = signals[signals['type'] == '强卖']
         if len(buys):
             fig.add_trace(go.Scatter(
                 x=buys['date'], y=buys['index_px'], mode='markers', name='强买',
-                marker=dict(symbol='triangle-up', size=10), yaxis='y2'))
+                marker=dict(symbol='triangle-up', size=10), yaxis='y2'
+            ))
         if len(sells):
             fig.add_trace(go.Scatter(
                 x=sells['date'], y=sells['index_px'], mode='markers', name='强卖',
-                marker=dict(symbol='triangle-down', size=10), yaxis='y2'))
+                marker=dict(symbol='triangle-down', size=10), yaxis='y2'
+            ))
 
     fig.update_layout(
         template='plotly_dark',
@@ -158,6 +164,7 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
         height=560,
     )
     return fig
+
 
 from pathlib import Path
 APP_DIR = Path(__file__).parent
@@ -1169,6 +1176,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
