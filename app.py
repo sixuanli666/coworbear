@@ -101,8 +101,17 @@ def find_signals(df: pd.DataFrame, score_col: str, index_col: str,
 
 def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
                      show_bands: bool, mu: float, sigma: float, k: float,
-                     signals: pd.DataFrame):
+                     signals: pd.DataFrame, shift_weeks: int = 0):
+
+
     fig = go.Figure()
+
+# === 新增：分数线的 x 轴可以右移 ===
+    if shift_weeks and shift_weeks != 0:
+        # 1 周按 7 天算；需要 pandas 的 Timedelta
+        score_x = df['date'] + pd.to_timedelta(shift_weeks * 7, unit='D')
+    else:
+        score_x = df['date']
 
     # 分数（左轴）
     fig.add_trace(go.Scatter(
@@ -245,6 +254,27 @@ with st.sidebar:
     show_bands = st.checkbox('显示均值与 ±σ 带', value=True, key='main_bands')
     use_quadrant = st.checkbox('启用强买强卖信号', value=True, key='main_quad')
 
+# === 新增：分数线右移（周） ===
+    import re
+    def _infer_h_from_name(col: str) -> int | None:
+        m = re.search(r'h(\d+)', col)  # 例如 score_h16_predret -> 16
+        if m:
+            try:
+                return int(m.group(1))
+            except ValueError:
+                return None
+        return None
+
+    enable_shift = st.checkbox('将分数线向右平移（按周）', value=False, key='main_shift_enable')
+    if enable_shift:
+        default_h = _infer_h_from_name(score_col) or 0
+        shift_weeks = st.number_input(
+            '右移周数（>0 向右）',
+            min_value=0, max_value=260, value=default_h, step=1,
+            key='main_shift_weeks'
+        )
+    else:
+        shift_weeks = 0
 
 # 过滤起始日期
 if start_date:
@@ -262,7 +292,13 @@ else:
     sig_df = pd.DataFrame(columns=['date', 'score', 'index_px', 'type'])
 
 # 主图
-fig = make_main_figure(_df, score_col, index_col, show_bands, mu, sigma, sigma_k, sig_df)
+fig = make_main_figure(
+    _df, score_col, index_col,
+    show_bands, mu, sigma, sigma_k,
+    sig_df,
+    shift_weeks=int(shift_weeks)  # 来自侧边栏
+)
+
 st.plotly_chart(fig, use_container_width=True)
 
 # 下载主图（PNG）
@@ -1133,6 +1169,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
