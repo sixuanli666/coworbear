@@ -386,14 +386,126 @@ else:
 
 
 
-# ========== 可选：在正文里配置因子释义（不想配置可忽略） ==========
-# with st.expander("（可选）配置因子名称与释义", expanded=False):
-#     st.caption("优先顺序：上传CSV/JSON > 粘贴JSON文本 > 内置默认映射。若都不提供，则仅显示列名。")
-#     fac_meta_file = st.file_uploader('上传因子字典（CSV或JSON）', type=['csv','json'], key='fac_meta_upl_main',
-#                                      help='CSV需含列：col,name,desc；JSON为 {列名: {"name": 名称, "desc": 释义}}')
-#     fac_meta_text = st.text_area('或粘贴JSON映射（可空）', value='',
-#                                  placeholder='{"f41": {"name": "动量(短期)", "desc": "近N日收益动量，衡量趋势延续性"}}',
-#                                  key='fac_meta_text_main')
+@st.cache_data(show_spinner=False)
+def load_factor_decomp_csv(path: str) -> pd.DataFrame:
+    """
+    读取因子回归分解_all_h.csv，规范 date 列并排序。
+    """
+    df = pd.read_csv(path)
+    if "date" not in df.columns:
+        raise ValueError("因子回归分解 CSV 缺少 date 列")
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df = df.dropna(subset=["date"]).sort_values("date")
+    return df
+
+
+def compute_factor_contribution(df: pd.DataFrame, h: int, include_intercept: bool = False):
+    """
+    计算因子回归分解的总贡献：将多个因子的贡献值合并为一个综合得分（f41_contrib_h16 + f42_contrib_h16 + ...）。
+    """
+    # 找出该 h 对应的 *_contrib_h{h} 列
+    pattern = f"_h{h}"
+    fac_cols = [
+        c for c in df.columns
+        if "contrib" in c and c.endswith(pattern)
+    ]
+
+    intercept_col = f"intercept_h{h}"
+    if include_intercept and intercept_col in df.columns:
+        fac_cols.append(intercept_col)
+
+    if not fac_cols:
+        st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
+        return None
+
+    # 计算因子总贡献
+    df['total_contrib'] = df[fac_cols].sum(axis=1)
+
+    return df
+
+
+def make_contrib_box_figure(df: pd.DataFrame, h: int):
+    """
+    画出因子综合贡献得分的箱线图。
+    """
+    df['date'] = pd.to_datetime(df['date'], errors="coerce")
+    data = df[['date', 'total_contrib']].dropna()
+
+    fig = go.Figure()
+
+    # 每个日期一个箱型
+    for d, g in data.groupby('date'):
+        fig.add_trace(go.Box(
+            x=[d] * len(g),          # 所有点的 x 都是同一天
+            y=g['total_contrib'],
+            name=d.strftime('%Y-%m-%d'),
+            boxpoints='outliers',    # 只画离群点
+            marker=dict(size=2),
+            line=dict(width=1),
+            showlegend=False         # legend 不需要一大串日期
+        ))
+
+    fig.update_layout(
+        template='plotly_dark',
+        margin=dict(l=60, r=40, t=40, b=40),
+        xaxis=dict(title='日期'),
+        yaxis=dict(title=f'因子贡献综合得分（h={h}）'),
+        height=560,
+    )
+    return fig
+
+
+# ================== Streamlit UI ==================
+st.markdown("---")
+st.subheader("因子贡献综合得分箱线图（按时间）")
+
+# 读取数据
+fac_decomp_path = st.text_input(
+    "因子回归分解 CSV 路径",
+    value="因子回归分解_all_h.csv",  # 设置默认路径
+    key="fac_decomp_path"
+)
+
+# h 直接用数字输入
+fac_h = st.number_input(
+    "预测期 h（与列名中的 h 对应，如 1, 4, 8, 16）",
+    min_value=1, max_value=260, value=16, step=1,
+    key="fac_decomp_h"
+)
+
+fac_include_intercept = st.checkbox(
+    "包含截距项 intercept_h{h}",
+    value=False,
+    key="fac_decomp_include_intercept"
+)
+
+btn_generate = st.button("生成因子贡献箱线图", type="primary", key="fac_decomp_btn")
+
+if btn_generate:
+    try:
+        # 读取 CSV
+        fac_df = load_factor_decomp_csv(fac_decomp_path)
+
+        # 计算因子总贡献
+        fac_df = compute_factor_contribution(fac_df, h=fac_h, include_intercept=fac_include_intercept)
+
+        # 绘制箱线图
+        fig_fac = make_contrib_box_figure(fac_df, h=fac_h)
+
+        st.plotly_chart(fig_fac, use_container_width=True)
+
+        # 可选：下载长表数据
+        with st.expander("下载长表数据"):
+            st.download_button(
+                "下载长表 CSV",
+                data=fac_df[['date', 'total_contrib']].to_csv(index=False).encode('utf-8-sig'),
+                file_name=f"factor_contrib_total_h{fac_h}.csv",
+                mime="text/csv"
+            )
+
+    except Exception as e:
+        st.error(f"生成因子贡献箱线图失败：{type(e).__name__}: {e}")
+
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
@@ -1226,6 +1338,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
