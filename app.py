@@ -349,7 +349,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         df_filtered,
         x='date',
         y=columns_to_plot,
-        title=f"未来{period_label}因子贡献",
+        title=f"未来{period_label}周因子贡献",
         labels={'date': '日期'},
         template='plotly_dark'
     )
@@ -1253,6 +1253,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
