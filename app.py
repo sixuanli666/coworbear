@@ -350,15 +350,15 @@ else:
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
     
-    # # 定义因子名称到颜色的映射
-    # color_map = {
-    #     'f41_contrib_h16': 'blue',
-    #     'f42_contrib_h16': 'green',
-    #     'f43_contrib_h16': 'red',
-    #     'f45_contrib_h16': 'purple',
-    #     'f49_contrib_h16': 'orange',
-    #     'f411_contrib_h16': 'pink'
-    # }
+    # 定义因子名称到颜色的映射
+    color_map = {
+        'f41_contrib_h16': 'blue',
+        'f42_contrib_h16': 'green',
+        'f43_contrib_h16': 'red',
+        'f45_contrib_h16': 'purple',
+        'f49_contrib_h16': 'orange',
+        'f411_contrib_h16': 'pink'
+    }
     
     # # 创建条形图，并应用颜色映射
     # fig = px.bar(
@@ -393,11 +393,12 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
              title=f"未来{period_label}周因子贡献",
               labels={'date': '日期'},
               template='plotly_dark',
+              color_discrete_map=color_map,  # 使用自定义颜色映射
               barmode='stack')  # 堆叠模式
     
    
    # 负值的柱子加上去
-    fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data)
+    fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot,color_discrete_map=color_map).data)
 
     fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
 
