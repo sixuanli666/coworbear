@@ -343,9 +343,7 @@ else:
 
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
-# 创建堆叠柱状图
-# 更新 columns_to_plot 为正负值列
-columns_to_plot = [f'{col}_pos' for col in columns_to_plot] + [f'{col}_neg' for col in columns_to_plot]
+
 
 # 创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
@@ -1287,6 +1285,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
