@@ -395,7 +395,7 @@ columns_to_plot = [
     'intercept_h16', 'score_h16_predret'
 ]
 df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
-
+df['date']=pd.to_datetime(df['date'])
 # 让用户选择周期长度
 period_label = st.selectbox(
     "选择周期长度",
@@ -1251,6 +1251,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
