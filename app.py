@@ -359,7 +359,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
-        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        yaxis=dict(range=[-0.3, 0.3]),  # 根据因子的数值范围调整
         height=600
     )
     return fig
@@ -1262,6 +1262,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
