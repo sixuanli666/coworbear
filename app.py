@@ -349,22 +349,7 @@ else:
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
     # 你可以根据因子名动态设置颜色，使得每个因子的正负贡献更明显
-    color_map = {
-    'f41_contrib_h16_pos': 'blue',
-    'f41_contrib_h16_neg': 'lightblue',
-    'f42_contrib_h16_pos': 'red',
-    'f42_contrib_h16_neg': 'lightcoral',
-    'f43_contrib_h16_pos': 'green',
-    'f43_contrib_h16_neg': 'lightgreen',
-    'f45_contrib_h16_pos': 'purple',
-    'f45_contrib_h16_neg': 'plum',
-    'f49_contrib_h16_pos': 'orange',
-    'f49_contrib_h16_neg': 'lightorange',
-    'f411_contrib_h16_pos': 'cyan',
-    'f411_contrib_h16_neg': 'lightcyan',
-    'intercept_h16_pos': 'pink',
-    'intercept_h16_neg': 'lightpink'
-}
+
     fig = px.bar(
         df_filtered,
         x='date',
@@ -427,24 +412,7 @@ columns_to_plot = [
 ]
 df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
 df['date']=pd.to_datetime(df['date'])
-# 创建正负值列
-for col in columns_to_plot:
-    df[f'{col}_pos'] = df[col].apply(lambda x: x if x > 0 else 0)
-    df[f'{col}_neg'] = df[col].apply(lambda x: x if x < 0 else 0)
 
-# 创建正负值列并更新 columns_to_plot
-new_columns_to_plot = []
-for col in columns_to_plot:
-    # 创建正负值列
-    df[f'{col}_pos'] = df[col].apply(lambda x: x if x > 0 else 0)
-    df[f'{col}_neg'] = df[col].apply(lambda x: x if x < 0 else 0)
-    
-    # 添加正值列和负值列到新的 columns_to_plot 列表
-    new_columns_to_plot.append(f'{col}_pos')
-    new_columns_to_plot.append(f'{col}_neg')
-
-# 更新 columns_to_plot
-columns_to_plot = new_columns_to_plot
 
 # 让用户选择周期长度
 period_label = st.selectbox(
@@ -1302,6 +1270,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
