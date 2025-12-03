@@ -348,13 +348,30 @@ else:
 # 创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
-    
+    # 你可以根据因子名动态设置颜色，使得每个因子的正负贡献更明显
+    color_map = {
+    'f41_contrib_h16_pos': 'blue',
+    'f41_contrib_h16_neg': 'lightblue',
+    'f42_contrib_h16_pos': 'red',
+    'f42_contrib_h16_neg': 'lightcoral',
+    'f43_contrib_h16_pos': 'green',
+    'f43_contrib_h16_neg': 'lightgreen',
+    'f45_contrib_h16_pos': 'purple',
+    'f45_contrib_h16_neg': 'plum',
+    'f49_contrib_h16_pos': 'orange',
+    'f49_contrib_h16_neg': 'lightorange',
+    'f411_contrib_h16_pos': 'cyan',
+    'f411_contrib_h16_neg': 'lightcyan',
+    'intercept_h16_pos': 'pink',
+    'intercept_h16_neg': 'lightpink'
+}
     fig = px.bar(
         df_filtered,
         x='date',
         y=columns_to_plot,
         title=f"未来{period_label}周因子贡献",
         labels={'date': '日期'},
+        color_discrete_map=color_map,  # 使用你定义的颜色映射
         template='plotly_dark'
     )
     fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
@@ -1285,6 +1302,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
