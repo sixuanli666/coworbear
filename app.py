@@ -430,7 +430,7 @@ def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept:
         fig.add_trace(go.Bar(
             x=df['date'], y=df[factor],
             name=factor, 
-            hovertemplate=f"{factor}: %{y:.2f}",  # 每个因子的具体贡献
+            hovertemplate=f"{factor}: %{value:.2f}",  # 更新为正确的字段名
             marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
         ))
 
@@ -1326,6 +1326,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
