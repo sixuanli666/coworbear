@@ -344,48 +344,31 @@ else:
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
 # 创建堆叠柱状图
+# 更新 columns_to_plot 为正负值列
+columns_to_plot = [f'{col}_pos' for col in columns_to_plot] + [f'{col}_neg' for col in columns_to_plot]
+
+# 创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
     
-    # 你可以根据因子名动态设置颜色，使得每个因子的正负贡献更明显
-    color_map = {
-    'f41_contrib_h16_pos': 'blue',
-    'f41_contrib_h16_neg': 'lightblue',
-    'f42_contrib_h16_pos': 'red',
-    'f42_contrib_h16_neg': 'lightcoral',
-    'f43_contrib_h16_pos': 'green',
-    'f43_contrib_h16_neg': 'lightgreen',
-    'f45_contrib_h16_pos': 'purple',
-    'f45_contrib_h16_neg': 'plum',
-    'f49_contrib_h16_pos': 'orange',
-    'f49_contrib_h16_neg': 'lightorange',
-    'f411_contrib_h16_pos': 'cyan',
-    'f411_contrib_h16_neg': 'lightcyan',
-    'intercept_h16_pos': 'pink',
-    'intercept_h16_neg': 'lightpink'
-}
-
-    # 在绘制堆叠图时使用不同的颜色
     fig = px.bar(
-    df_filtered,
-    x='date',
-    y=columns_to_plot,
-    title=f"未来{period_label}周因子贡献",
-    labels={'date': '日期'},
-    color_discrete_map=color_map,  # 使用你定义的颜色映射
-    template='plotly_dark'
-)
-    
+        df_filtered,
+        x='date',
+        y=columns_to_plot,
+        title=f"未来{period_label}周因子贡献",
+        labels={'date': '日期'},
+        template='plotly_dark'
+    )
+    fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
     fig.update_layout(
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
         yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
-        height=600,
-        traceorder='normal',
+        height=600
     )
-    
     return fig
+
 
 # 主应用
 st.set_page_config(page_title='因子贡献堆叠图', layout='wide')
