@@ -465,7 +465,7 @@ with st.sidebar:
     fac_decomp_path = st.text_input(
         "因子回归分解 CSV 路径",
         # 如果 config.json 里没有这个 key，可以直接写绝对路径，或手动修改成你的文件名
-        value=get_path("factor_decomp_all_h") or "因子回归分解_all_h.csv",
+        value=get_path("factor_decomp_all_h"),
         key="fac_decomp_path"
     )
 
@@ -1392,6 +1392,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
