@@ -340,7 +340,86 @@ else:
     st.info('暂无信号。')
 
 
+# 加载CSV数据
+def load_data(file_path):
+    return pd.read_csv(file_path)
+ 创建堆叠柱状图
+def create_stacked_bar_chart(df, columns_to_plot, period_label):
+    df_filtered = df[['date'] + columns_to_plot].dropna(subset=columns_to_plot)
+    fig = px.bar(
+        df_filtered,
+        x='date',
+        y=columns_to_plot,
+        title=f"未来{period_label}因子贡献",
+        labels={'date': '日期'},
+        template='plotly_dark'
+    )
+    fig.update_layout(
+        xaxis_title='日期',
+        yaxis_title='贡献',
+        barmode='stack',
+        height=600
+    )
+    return fig
 
+# 主应用
+st.set_page_config(page_title='因子贡献堆叠图', layout='wide')
+st.title('因子贡献堆叠图')
+
+st.caption('本应用展示因子贡献的堆叠柱状图，选择要展示的周期和因子列，进行可视化分析。')
+
+# 侧边栏：数据输入
+with st.sidebar:
+    st.header('因子贡献堆叠图参数')
+    default_path = get_path("factor_decomp_all_h")
+    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。')
+    uploaded = None
+    if not use_default:
+        uploaded = st.file_uploader('上传 CSV（含 date 与因子贡献列）', type=['csv'])
+
+# 读取数据
+try:
+    if use_default:
+        df = load_data(default_path)
+        
+    else:
+        if uploaded is None:
+            st.info('请在侧边栏上传 CSV，或启用“使用默认路径”。')
+            st.stop()
+        df = load_data(uploaded)
+except Exception as e:
+    st.error(f'读取 CSV 失败：{e}')
+    st.stop()
+
+# 选择展示列
+columns_to_plot = [
+    'f41_contrib_h16', 'f42_contrib_h16', 'f43_contrib_h16',
+    'f45_contrib_h16', 'f49_contrib_h16', 'f411_contrib_h16',
+    'intercept_h16', 'score_h16_predret'
+]
+
+# 让用户选择周期长度
+period_label = st.selectbox(
+    "选择周期长度",
+    options=[8, 12, 16, 24, 32],
+    index=2  # 默认选择16周
+)
+
+# 更新因子列名称以适应不同周期
+columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
+
+# 创建堆叠柱状图
+fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
+st.plotly_chart(fig, use_container_width=True)
+
+# 导出功能
+with st.expander('导出数据'):
+    st.download_button(
+        '下载数据',
+        data=df.to_csv(index=False).encode('utf-8-sig'),
+        file_name=f'factor_contributions_{period_label}weeks.csv',
+        mime='text/csv'
+    )
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
@@ -1173,6 +1252,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
