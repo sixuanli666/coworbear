@@ -101,43 +101,58 @@ def find_signals(df: pd.DataFrame, score_col: str, index_col: str,
 
 def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
                      show_bands: bool, mu: float, sigma: float, k: float,
-                     signals: pd.DataFrame):
+                     signals: pd.DataFrame, shift_weeks: int = 0):
+
     fig = go.Figure()
 
-    # 分数（左轴）
-    fig.add_trace(go.Scatter(
-        x=df['date'], y=df[score_col], mode='lines', name=score_col,
-        yaxis='y1'))
+    # === 分数线的 x 轴可以右移 ===
+    if shift_weeks and shift_weeks != 0:
+        # 1 周按 7 天算
+        score_x = df['date'] + pd.to_timedelta(shift_weeks * 7, unit='D')
+    else:
+        score_x = df['date']
 
-    # 指数（右轴）
+    # 分数（左轴）——这里要用 score_x，而不是 df['date']！
+    fig.add_trace(go.Scatter(
+        x=score_x, y=df[score_col], mode='lines', name=score_col,
+        yaxis='y1'
+    ))
+
+    # 指数（右轴）——不平移
     fig.add_trace(go.Scatter(
         x=df['date'], y=df[index_col], mode='lines', name=index_col,
-        yaxis='y2'))
+        yaxis='y2'
+    ))
 
-    # 均值与带
+    # 均值与带 —— 仍然用原始日期
     if show_bands:
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu]*len(df), mode='lines', name='均值',
-            line=dict(dash='dot'), yaxis='y1'))
+            line=dict(dash='dot'), yaxis='y1'
+        ))
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu + k*sigma]*len(df), mode='lines', name=f'+{k}σ',
-            line=dict(dash='dash'), yaxis='y1'))
+            line=dict(dash='dash'), yaxis='y1'
+        ))
         fig.add_trace(go.Scatter(
             x=df['date'], y=[mu - 1.0*sigma]*len(df), mode='lines', name='-1σ',
-            line=dict(dash='dash'), yaxis='y1'))
+            line=dict(dash='dash'), yaxis='y1'
+        ))
 
-    # 信号点画在指数轴上
+    # 信号点画在指数轴上（不平移）
     if not signals.empty:
         buys = signals[signals['type'] == '强买']
         sells = signals[signals['type'] == '强卖']
         if len(buys):
             fig.add_trace(go.Scatter(
                 x=buys['date'], y=buys['index_px'], mode='markers', name='强买',
-                marker=dict(symbol='triangle-up', size=10), yaxis='y2'))
+                marker=dict(symbol='triangle-up', size=10), yaxis='y2'
+            ))
         if len(sells):
             fig.add_trace(go.Scatter(
                 x=sells['date'], y=sells['index_px'], mode='markers', name='强卖',
-                marker=dict(symbol='triangle-down', size=10), yaxis='y2'))
+                marker=dict(symbol='triangle-down', size=10), yaxis='y2'
+            ))
 
     fig.update_layout(
         template='plotly_dark',
@@ -149,6 +164,7 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
         height=560,
     )
     return fig
+
 
 from pathlib import Path
 APP_DIR = Path(__file__).parent
@@ -174,6 +190,53 @@ def resolve_first_existing(p: str) -> Path | None:
             pass
     return None
 
+
+# ================== 新增：按日期的截面箱线图 ==================
+def make_box_figure(df: pd.DataFrame, score_col: str):
+    """
+    输入：
+        df: 至少包含 ['date', score_col]，且是“多股票 × 多日期”的长表。
+        score_col: 要展示的因子列，比如 'score_h16_predret'。
+    输出：
+        Plotly Figure（横轴为日期，每个日期一个箱型）。
+    """
+    # 保证日期与数值
+    data = df.copy()
+    data['date'] = pd.to_datetime(data['date'], errors='coerce')
+    data[score_col] = pd.to_numeric(data[score_col], errors='coerce')
+    data = data.dropna(subset=['date', score_col])
+    if data.empty:
+        return None
+
+    # 为了性能，给个温柔的提醒：如果日期太多，界面可能略卡
+    n_dates = data['date'].nunique()
+    if n_dates > 250:
+        # 这里只做提示，不做强制裁剪，方便你自己控制 start_date
+        st.warning(f"当前用于箱线图的日期有 {n_dates} 个，可能会稍慢，建议在侧边栏缩短起始日期。")
+
+    fig = go.Figure()
+
+    # 每个日期一个 box trace（横轴是时间）
+    # 注意：x 填同一个日期，Plotly 会自动按 x 位置排成一条时间轴上的 box 列
+    for d, g in data.groupby('date'):
+        fig.add_trace(go.Box(
+            x=[d] * len(g),          # 所有点的 x 都是同一天
+            y=g[score_col],
+            name=d.strftime('%Y-%m-%d'),
+            boxpoints='outliers',    # 只画离群点；如果不想要点可以改成 False
+            marker=dict(size=2),
+            line=dict(width=1),
+            showlegend=False         # legend 不需要一大串日期
+        ))
+
+    fig.update_layout(
+        template='plotly_dark',
+        margin=dict(l=60, r=40, t=40, b=40),
+        xaxis=dict(title='日期'),
+        yaxis=dict(title=f'{score_col} 截面分布'),
+        height=560,
+    )
+    return fig
 # ========== Streamlit UI ==========
 # —— 避免 ep_path 为空导致 value 被忽略 —— 
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
@@ -245,6 +308,27 @@ with st.sidebar:
     show_bands = st.checkbox('显示均值与 ±σ 带', value=True, key='main_bands')
     use_quadrant = st.checkbox('启用强买强卖信号', value=True, key='main_quad')
 
+# === 新增：分数线右移（周） ===
+    import re
+    def _infer_h_from_name(col: str) -> int | None:
+        m = re.search(r'h(\d+)', col)  # 例如 score_h16_predret -> 16
+        if m:
+            try:
+                return int(m.group(1))
+            except ValueError:
+                return None
+        return None
+
+    enable_shift = st.checkbox('将分数线向右平移（按周）', value=False, key='main_shift_enable')
+    if enable_shift:
+        default_h = _infer_h_from_name(score_col) or 0
+        shift_weeks = st.number_input(
+            '右移周数（>0 向右）',
+            min_value=0, max_value=260, value=default_h, step=1,
+            key='main_shift_weeks'
+        )
+    else:
+        shift_weeks = 0
 
 # 过滤起始日期
 if start_date:
@@ -262,8 +346,17 @@ else:
     sig_df = pd.DataFrame(columns=['date', 'score', 'index_px', 'type'])
 
 # 主图
-fig = make_main_figure(_df, score_col, index_col, show_bands, mu, sigma, sigma_k, sig_df)
+fig = make_main_figure(
+    _df, score_col, index_col,
+    show_bands, mu, sigma, sigma_k,
+    sig_df,
+    shift_weeks=int(shift_weeks)  # 来自侧边栏
+)
+
 st.plotly_chart(fig, use_container_width=True)
+
+
+
 
 # 下载主图（PNG）
 with st.expander('导出主图 / 数据'):
@@ -855,7 +948,7 @@ st.subheader("2.2 行业拥挤度 / TMT 拥挤度 / 行业热度榜")
 with st.expander("指标说明", expanded=False):
     st.write("""
     本节数据由离线批处理脚本生成（全A逐日成交+行业映射+周度换手等大数据聚合）。
-    本页面只负责展示与下载，不在页面内重新计算，避免全量重算导致卡顿。目前时间区间为'2025-08-01'到'2025-11-01'
+    本页面只负责展示与下载，不在页面内重新计算，避免全量重算导致卡顿。目前时间区间为'2025-08-01'到最新时点
 
     图1：行业成交额占比
     统计整个时间区间内各行业累计成交额在全市场中的比例，用来观察长期资金关注度。占比越高的行业，说明在时间区间里交易最活跃、资金集中度最高。
@@ -1133,6 +1226,10 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
+
+
+
 
 
 
