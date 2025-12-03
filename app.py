@@ -353,11 +353,12 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         labels={'date': '日期'},
         template='plotly_dark'
     )
+    
     fig.update_layout(
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
-        height=600
+        height=800
     )
     return fig
 
@@ -407,6 +408,7 @@ period_label = st.selectbox(
 
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
+st.write(df[df['date'] == '2025-11-28'][['f45_contrib_h16', 'f49_contrib_h16']])
 
 # 创建堆叠柱状图
 fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
@@ -1253,6 +1255,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
