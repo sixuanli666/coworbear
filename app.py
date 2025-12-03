@@ -377,7 +377,7 @@ def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept:
         st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
         return None
 
-    df[fac_cols]=pd.to_numeric(df[fac_cols])
+    df[fac_cols]=pd.to_numeric(df[fac_cols],errors='coerce')
     # 创建堆叠柱状图
     fig = go.Figure()
     
@@ -1283,6 +1283,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
