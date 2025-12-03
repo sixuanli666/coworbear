@@ -385,7 +385,7 @@ def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept:
         fig.add_trace(go.Bar(
     x=df['date'], y=df[factor],
     name=factor, 
-    hovertemplate=f"{factor}: %{y:.2f}",  # Plotly 会自动解析 %{y}
+    hovertemplate=f"{factor}: %{df[factor]:.2f}",  # Plotly 会自动解析 %{y}
     marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
 ))
 
@@ -1282,6 +1282,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
