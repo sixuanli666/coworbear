@@ -350,36 +350,54 @@ else:
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
     
-    # 定义因子名称到颜色的映射
-    color_map = {
-        'f41_contrib_h16': 'blue',
-        'f42_contrib_h16': 'green',
-        'f43_contrib_h16': 'red',
-        'f45_contrib_h16': 'purple',
-        'f49_contrib_h16': 'orange',
-        'f411_contrib_h16': 'pink'
-    }
+    # # 定义因子名称到颜色的映射
+    # color_map = {
+    #     'f41_contrib_h16': 'blue',
+    #     'f42_contrib_h16': 'green',
+    #     'f43_contrib_h16': 'red',
+    #     'f45_contrib_h16': 'purple',
+    #     'f49_contrib_h16': 'orange',
+    #     'f411_contrib_h16': 'pink'
+    # }
     
-    # 创建条形图，并应用颜色映射
-    fig = px.bar(
-        df_filtered,
-        x='date',
-        y=columns_to_plot,
-        title=f"未来{period_label}周因子贡献",
-        labels={'date': '日期'},
-        color_discrete_map=color_map,  # 使用自定义颜色映射
-        template='plotly_dark'
-    )
+    # # 创建条形图，并应用颜色映射
+    # fig = px.bar(
+    #     df_filtered,
+    #     x='date',
+    #     y=columns_to_plot,
+    #     title=f"未来{period_label}周因子贡献",
+    #     labels={'date': '日期'},
+    #     # color_discrete_map=color_map,  # 使用自定义颜色映射
+    #     template='plotly_dark'
+    # )
+    
+   
+    # fig.update_layout(
+    #     xaxis_title='日期',
+    #     yaxis_title='贡献',
+    #     barmode='stack',
+    #     yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+    #     height=600
+    # )
+    # 使用 positive/negative 的辅助数据列
+    df_positive = df_filtered.copy()
+    df_negative = df_filtered.copy()
+
+    # 负值部分用 NaN 替换正值
+    df_positive[df_positive < 0] = 0
+    # 正值部分用 NaN 替换负值
+    df_negative[df_negative > 0] = 0
+
+    # 合并正负部分数据
+    fig = px.bar(df_positive, x='date', y=['因子1', '因子2', '因子3'],
+             title="因子贡献的堆叠柱状图",
+             labels={'date': '日期', 'value': '因子贡献'},
+             template='plotly_dark',
+             barmode='stack')  # 堆叠模式
     
     fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
-    fig.update_layout(
-        xaxis_title='日期',
-        yaxis_title='贡献',
-        barmode='group',
-        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
-        height=600
-    )
-    
+    # 负值的柱子加上去
+    fig.add_traces(px.bar(df_negative, x='date', y=['因子1', '因子2', '因子3']).data)
     return fig
 
 
