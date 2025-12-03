@@ -237,6 +237,76 @@ def make_box_figure(df: pd.DataFrame, score_col: str):
         height=560,
     )
     return fig
+
+
+import re  # 如果前面没 import 过的话，加这一行
+
+@st.cache_data(show_spinner=False)
+def load_factor_decomp_csv(path: str) -> pd.DataFrame:
+    """
+    读取因子回归分解_all_h.csv，规范 date 列并排序。
+    """
+    df = pd.read_csv(path)
+    if "date" not in df.columns:
+        raise ValueError("因子回归分解 CSV 缺少 date 列")
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df = df.dropna(subset=["date"]).sort_values("date")
+    return df
+
+
+def make_factor_box_from_decomp(df_decomp: pd.DataFrame,
+                                h: int,
+                                include_intercept: bool = False):
+    """
+    把因子回归分解宽表，转换成「时间 × 因子贡献」的长表，
+    然后复用上面的 make_box_figure 画箱线图：
+
+        - 横轴：日期
+        - 每个日期：一组样本 = 当期所有因子贡献值（f41_contrib_h1, f42_contrib_h1, ...）
+        - 纵轴：因子贡献
+    """
+    # 找出该 h 对应的 *_contrib_h{h} 列
+    pattern = f"_h{h}"
+    fac_cols = [
+        c for c in df_decomp.columns
+        if "contrib" in c and c.endswith(pattern)
+    ]
+
+    intercept_col = f"intercept_h{h}"
+    if include_intercept and intercept_col in df_decomp.columns:
+        fac_cols.append(intercept_col)
+
+    if not fac_cols:
+        st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
+        return None
+
+    # 展平成长表：每行 = (date, factor_name, contrib)
+    records = []
+    for _, row in df_decomp.iterrows():
+        d = row["date"]
+        for c in fac_cols:
+            records.append({
+                "date": d,
+                "factor": c,
+                "contrib": row[c]
+            })
+
+    long_df = pd.DataFrame(records)
+    long_df["date"] = pd.to_datetime(long_df["date"], errors="coerce")
+    long_df["contrib"] = pd.to_numeric(long_df["contrib"], errors="coerce")
+    long_df = long_df.dropna(subset=["date", "contrib"])
+
+    if long_df.empty:
+        return None
+
+    # 这里直接复用你上面的 make_box_figure：按 date 分组，每个 date 画一个箱型
+    fig = make_box_figure(long_df, "contrib")
+    fig.update_layout(
+        title=f"因子贡献截面箱线图（样本：各因子；h={h}）",
+        yaxis=dict(title=f"因子贡献（h={h}）")
+    )
+    return fig, long_df
+
 # ========== Streamlit UI ==========
 # —— 避免 ep_path 为空导致 value 被忽略 —— 
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
@@ -377,6 +447,109 @@ with st.expander('导出主图 / 数据'):
         st.download_button('下载详细分数表 CSV', data=_df.to_csv(index=False).encode('utf-8-sig'),
                            file_name='filtered_data.csv', mime='text/csv')
 
+# ================== 新增：因子贡献箱线图（按时间） ==================
+st.markdown("---")
+st.subheader("因子贡献截面箱线图（x=时间，箱内=各因子贡献）")
+
+with st.expander("指标说明", expanded=False):
+    st.write("""
+    每个日期，把当期所有因子贡献（例如 f41_contrib_h1、f42_contrib_h1、…）视为一组样本，
+    在该日期位置画一个箱线图，横轴是时间，纵轴是因子贡献。
+    
+    你可以选择预测期 h（例如 h=1、4、8、16），以及是否把截距项一起算进箱型。
+    """)
+
+# --- 侧边栏：因子贡献箱线图参数 ---
+with st.sidebar:
+    st.header("因子贡献箱线图·参数")
+    fac_decomp_path = st.text_input(
+        "因子回归分解 CSV 路径",
+        # 如果 config.json 里没有这个 key，可以直接写绝对路径，或手动修改成你的文件名
+        value=get_path("factor_decomp_all_h") or "因子回归分解_all_h.csv",
+        key="fac_decomp_path"
+    )
+
+    # h 直接用数字输入，匹配 f41_contrib_h1 这种列名里的 h
+    fac_h = st.number_input(
+        "预测期 h（与列名中的 h 对应，如 1, 4, 8, 12, 16, 20）",
+        min_value=1, max_value=260, value=1, step=1,
+        key="fac_decomp_h"
+    )
+
+    fac_include_intercept = st.checkbox(
+        "包含截距项 intercept_h{h}",
+        value=False,
+        key="fac_decomp_include_intercept"
+    )
+
+    fac_start = st.text_input(
+        "起始日(YYYYMMDD，可空)",
+        value="",
+        key="fac_decomp_start"
+    )
+    fac_end = st.text_input(
+        "结束日(YYYYMMDD，可空)",
+        value="",
+        key="fac_decomp_end"
+    )
+
+btn_fac_box = st.button("生成因子贡献箱线图", type="primary", key="fac_decomp_btn")
+
+if btn_fac_box:
+    try:
+        raw_path = st.session_state.get("fac_decomp_path", "")
+        p = resolve_first_existing(raw_path)
+        if p is None:
+            st.error(f"因子回归分解 CSV 路径无效：{raw_path}")
+            st.stop()
+
+        fac_df = load_factor_decomp_csv(str(p))
+
+        # 时间过滤
+        if fac_start:
+            try:
+                fac_df = fac_df[fac_df["date"] >= pd.to_datetime(fac_start, format="%Y%m%d")]
+            except Exception:
+                st.warning("起始日格式应为 YYYYMMDD，已忽略起始日过滤。")
+        if fac_end:
+            try:
+                fac_df = fac_df[fac_df["date"] <= pd.to_datetime(fac_end,   format="%Y%m%d")]
+            except Exception:
+                st.warning("结束日格式应为 YYYYMMDD，已忽略结束日过滤。")
+
+        if fac_df.empty:
+            st.warning("当前时间过滤条件下，因子回归分解数据为空。")
+            st.stop()
+
+        h = int(st.session_state.get("fac_decomp_h", 1))
+        fig_fac, fac_long_df = make_factor_box_from_decomp(
+            fac_df,
+            h=h,
+            include_intercept=st.session_state.get("fac_decomp_include_intercept", False)
+        )
+
+        if fig_fac is None:
+            st.info("没有可用的数据绘制因子贡献箱线图，请检查 h 或列名是否对应。")
+        else:
+            st.plotly_chart(fig_fac, use_container_width=True)
+
+            with st.expander("下载箱线图使用的长表数据"):
+                st.download_button(
+                    "下载长表 CSV",
+                    data=fac_long_df.to_csv(index=False).encode("utf-8-sig"),
+                    file_name=f"factor_contrib_box_h{h}.csv",
+                    mime="text/csv"
+                )
+
+    except Exception as e:
+        st.error(f"生成因子贡献箱线图失败：{type(e).__name__}: {e}")
+
+
+
+
+
+
+
 # 最近信号表
 st.subheader('强买强卖信号集合')
 if not sig_df.empty:
@@ -386,14 +559,7 @@ else:
 
 
 
-# ========== 可选：在正文里配置因子释义（不想配置可忽略） ==========
-# with st.expander("（可选）配置因子名称与释义", expanded=False):
-#     st.caption("优先顺序：上传CSV/JSON > 粘贴JSON文本 > 内置默认映射。若都不提供，则仅显示列名。")
-#     fac_meta_file = st.file_uploader('上传因子字典（CSV或JSON）', type=['csv','json'], key='fac_meta_upl_main',
-#                                      help='CSV需含列：col,name,desc；JSON为 {列名: {"name": 名称, "desc": 释义}}')
-#     fac_meta_text = st.text_area('或粘贴JSON映射（可空）', value='',
-#                                  placeholder='{"f41": {"name": "动量(短期)", "desc": "近N日收益动量，衡量趋势延续性"}}',
-#                                  key='fac_meta_text_main')
+
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
@@ -1226,6 +1392,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
