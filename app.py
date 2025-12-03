@@ -343,9 +343,10 @@ else:
 
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
+# 创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
-    # df_filtered = df[['date'] + columns_to_plot].dropna(subset=columns_to_plot)
     df_filtered = df[['date'] + columns_to_plot]
+    
     fig = px.bar(
         df_filtered,
         x='date',
@@ -359,7 +360,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
-        yaxis=dict(range=[-0.3, 0.3]),  # 根据因子的数值范围调整
+        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
         height=600
     )
     return fig
@@ -406,6 +407,10 @@ columns_to_plot = [
 ]
 df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
 df['date']=pd.to_datetime(df['date'])
+# 创建正负值列
+for col in columns_to_plot:
+    df[f'{col}_pos'] = df[col].apply(lambda x: x if x > 0 else 0)
+    df[f'{col}_neg'] = df[col].apply(lambda x: x if x < 0 else 0)
 # 让用户选择周期长度
 period_label = st.selectbox(
     "选择周期长度",
@@ -1262,6 +1267,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
