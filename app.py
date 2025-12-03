@@ -462,7 +462,7 @@ st.subheader("因子贡献综合得分箱线图（按时间）")
 # 读取数据
 fac_decomp_path = st.text_input(
     "因子回归分解 CSV 路径",
-    value="因子回归分解_all_h.csv",  # 设置默认路径
+    value=get_path("factor_decomp_all_h"),  # 设置默认路径
     key="fac_decomp_path"
 )
 
@@ -1338,6 +1338,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
