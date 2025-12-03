@@ -389,15 +389,25 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_negative[df_negative[columns_to_plot] > 0] = 0
 
     # 合并正负部分数据
-    fig = px.bar(df_positive, x='date', y=['因子1', '因子2', '因子3'],
-             title="因子贡献的堆叠柱状图",
-             labels={'date': '日期', 'value': '因子贡献'},
-             template='plotly_dark',
-             barmode='stack')  # 堆叠模式
+    fig = px.bar(df_positive, x='date', y=columns_to_plot,
+             title=f"未来{period_label}周因子贡献",
+              labels={'date': '日期'},
+              template='plotly_dark',
+              barmode='stack')  # 堆叠模式
     
-    fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
+   
     # 负值的柱子加上去
     fig.add_traces(px.bar(df_negative, x='date', y=['因子1', '因子2', '因子3']).data)
+
+    fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
+
+    # 调整布局
+    fig.update_layout(
+        xaxis_title='日期',
+        yaxis_title='贡献',
+        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        height=600
+    )
     return fig
 
 
