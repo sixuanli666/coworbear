@@ -385,6 +385,9 @@ else:
     st.info('暂无信号。')
 
 
+import plotly.graph_objects as go
+import pandas as pd
+import streamlit as st
 
 @st.cache_data(show_spinner=False)
 def load_factor_decomp_csv(path: str) -> pd.DataFrame:
@@ -399,9 +402,10 @@ def load_factor_decomp_csv(path: str) -> pd.DataFrame:
     return df
 
 
-def compute_factor_contribution(df: pd.DataFrame, h: int, include_intercept: bool = False):
+def make_contrib_box_figure(df: pd.DataFrame, h: int, include_intercept: bool = False):
     """
-    计算因子回归分解的总贡献：将多个因子的贡献值合并为一个综合得分（f41_contrib_h16 + f42_contrib_h16 + ...）。
+    生成因子贡献箱线图（按日期）。
+    每个日期一个箱线图，显示每个因子的贡献（包括常数项）。
     """
     # 找出该 h 对应的 *_contrib_h{h} 列
     pattern = f"_h{h}"
@@ -418,26 +422,17 @@ def compute_factor_contribution(df: pd.DataFrame, h: int, include_intercept: boo
         st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
         return None
 
-    # 计算因子总贡献
-    df['total_contrib'] = df[fac_cols].sum(axis=1)
-
-    return df
-
-
-def make_contrib_box_figure(df: pd.DataFrame, h: int):
-    """
-    画出因子综合贡献得分的箱线图。
-    """
-    df['date'] = pd.to_datetime(df['date'], errors="coerce")
-    data = df[['date', 'total_contrib']].dropna()
+    # 重新格式化数据为长表，每个日期对应一个因子贡献的箱线图
+    long_df = pd.melt(df, id_vars=["date"], value_vars=fac_cols, 
+                      var_name="factor", value_name="contrib")
 
     fig = go.Figure()
 
-    # 每个日期一个箱型
-    for d, g in data.groupby('date'):
+    # 每个日期一个箱线图
+    for d, g in long_df.groupby('date'):
         fig.add_trace(go.Box(
             x=[d] * len(g),          # 所有点的 x 都是同一天
-            y=g['total_contrib'],
+            y=g['contrib'],
             name=d.strftime('%Y-%m-%d'),
             boxpoints='outliers',    # 只画离群点
             marker=dict(size=2),
@@ -449,7 +444,7 @@ def make_contrib_box_figure(df: pd.DataFrame, h: int):
         template='plotly_dark',
         margin=dict(l=60, r=40, t=40, b=40),
         xaxis=dict(title='日期'),
-        yaxis=dict(title=f'因子贡献综合得分（h={h}）'),
+        yaxis=dict(title=f'因子贡献（h={h}）'),
         height=560,
     )
     return fig
@@ -457,12 +452,12 @@ def make_contrib_box_figure(df: pd.DataFrame, h: int):
 
 # ================== Streamlit UI ==================
 st.markdown("---")
-st.subheader("因子贡献综合得分箱线图（按时间）")
+st.subheader("因子贡献箱线图（按时间）")
 
 # 读取数据
 fac_decomp_path = st.text_input(
     "因子回归分解 CSV 路径",
-    value=get_path("factor_decomp_all_h"),  # 设置默认路径
+    value="因子回归分解_all_h.csv",  # 设置默认路径
     key="fac_decomp_path"
 )
 
@@ -486,11 +481,8 @@ if btn_generate:
         # 读取 CSV
         fac_df = load_factor_decomp_csv(fac_decomp_path)
 
-        # 计算因子总贡献
-        fac_df = compute_factor_contribution(fac_df, h=fac_h, include_intercept=fac_include_intercept)
-
         # 绘制箱线图
-        fig_fac = make_contrib_box_figure(fac_df, h=fac_h)
+        fig_fac = make_contrib_box_figure(fac_df, h=fac_h, include_intercept=fac_include_intercept)
 
         st.plotly_chart(fig_fac, use_container_width=True)
 
@@ -505,6 +497,7 @@ if btn_generate:
 
     except Exception as e:
         st.error(f"生成因子贡献箱线图失败：{type(e).__name__}: {e}")
+
 
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
@@ -1338,6 +1331,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
