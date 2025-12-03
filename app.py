@@ -355,37 +355,7 @@ fig = make_main_figure(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# ================== 新增：因子截面箱线图（按日） ==================
-st.subheader('因子截面分布箱线图（按日）')
 
-with st.expander("展示当前因子在每个交易日的截面分布（箱线图）", expanded=False):
-    st.caption(
-        f"横轴为日期，纵轴为当前选中的分数列 **{score_col}**。"
-        " 每个箱体代表该日所有股票该因子的截面分布：箱体=四分位，线=极值，孤立点=离群值。"
-        " 数据直接来自你加载的『因子综合打分_合并版本.csv』。"
-    )
-
-    # 这里使用 _df（已按起始日过滤、并完成数值转换），保留所有股票行
-    box_df = _df[['date', score_col]].copy()
-
-    if box_df['date'].nunique() <= 1:
-        st.info("当前筛选后的日期只有 1 个或没有，无法画时间序列箱线图；"
-                "请放宽起始日期或确认 CSV 为多股票×多日期的合并文件。")
-    else:
-        box_fig = make_box_figure(box_df, score_col)
-        if box_fig is not None:
-            st.plotly_chart(box_fig, use_container_width=True)
-
-            # 可选：给一个导出当前因子截面数据的按钮
-            with st.expander("下载当前因子截面数据（用于自定义分析）"):
-                st.download_button(
-                    "下载 CSV",
-                    data=box_df.to_csv(index=False).encode("utf-8-sig"),
-                    file_name=f"{score_col}_cross_section_by_date.csv",
-                    mime="text/csv"
-                )
-        else:
-            st.info("因子列中无有效数值，无法绘制箱线图。")
 
 
 # 下载主图（PNG）
@@ -1256,6 +1226,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
