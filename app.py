@@ -357,7 +357,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         y=columns_to_plot,
         title=f"未来{period_label}周因子贡献",
         labels={'date': '日期'},
-        color_discrete_map=color_map,  # 使用你定义的颜色映射
+        # color_discrete_map=color_map,  # 使用你定义的颜色映射
         template='plotly_dark'
     )
     fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
