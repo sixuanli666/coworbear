@@ -344,12 +344,8 @@ else:
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
 @st.cache_data(show_spinner=False)
-def load_data():
-    # 重新加载数据的代码
-    return data
 
 
-# 创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot]
     # 你可以根据因子名动态设置颜色，使得每个因子的正负贡献更明显
@@ -373,12 +369,6 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     )
     return fig
 
-
-# 主应用
-st.set_page_config(page_title='因子贡献堆叠图', layout='wide')
-st.title('因子贡献堆叠图')
-
-st.caption('本应用展示因子贡献的堆叠柱状图，选择要展示的周期和因子列，进行可视化分析。')
 
 # 侧边栏：数据输入
 with st.sidebar:
@@ -1274,6 +1264,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
