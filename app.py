@@ -340,122 +340,6 @@ else:
     st.info('暂无信号。')
 
 
-import plotly.graph_objects as go
-import pandas as pd
-import streamlit as st
-
-@st.cache_data(show_spinner=False)
-def load_factor_decomp_csv(path: str) -> pd.DataFrame:
-    """
-    读取因子回归分解_all_h.csv，规范 date 列并排序。
-    """
-    df = pd.read_csv(path)
-    if "date" not in df.columns:
-        raise ValueError("因子回归分解 CSV 缺少 date 列")
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df = df.dropna(subset=["date"]).sort_values("date")
-    return df
-
-
-def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept: bool = False):
-    """
-    生成因子贡献堆叠柱状图（按日期）。
-    每个日期对应一组堆叠柱状图，显示各个因子的具体贡献。
-    """
-    # 找出该 h 对应的 *_contrib_h{h} 列
-    pattern = f"_h{h}"
-    fac_cols = [
-        c for c in df.columns
-        if "contrib" in c and c.endswith(pattern)
-    ]
-
-    intercept_col = f"intercept_h{h}"
-    if include_intercept and intercept_col in df.columns:
-        fac_cols.append(intercept_col)
-
-    if not fac_cols:
-        st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
-        return None
-
-    # 确保列数据为数值型，并处理空值
-    df[fac_cols] = df[fac_cols].apply(pd.to_numeric, errors='coerce')
-
-    # 如果某些列还是空的，可能需要进一步处理
-    if df[fac_cols].isna().any().any():
-        st.warning("某些因子列包含空值，已转换为 NaN。")
-
-    # 生成堆叠柱状图
-    fig = go.Figure()
-    
-    # 每个日期对应一组堆叠柱状图
-    for factor in fac_cols:
-        fig.add_trace(go.Bar(
-            x=df['date'], y=df[factor],
-            name=factor, 
-            hovertemplate=f"{factor}: %{y:.2f}",  # Plotly 会自动解析 %{y}
-            marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
-        ))
-
-    fig.update_layout(
-        template='plotly_dark',
-        margin=dict(l=60, r=40, t=40, b=40),
-        xaxis=dict(title='日期'),
-        yaxis=dict(title=f'因子贡献（h={h}）'),
-        barmode='stack',  # 堆叠柱状图
-        height=560,
-    )
-    return fig
-
-
-
-# ================== Streamlit UI ==================
-st.markdown("---")
-st.subheader("因子贡献堆叠柱状图（按时间）")
-
-# 读取数据
-fac_decomp_path = st.text_input(
-    "因子回归分解 CSV 路径",
-    value=get_path("factor_decomp_all_h"),  # 设置默认路径
-    key="fac_decomp_path"
-)
-
-# h 直接用数字输入
-fac_h = st.number_input(
-    "预测期 h（与列名中的 h 对应，如 1, 4, 8, 16）",
-    min_value=1, max_value=260, value=16, step=1,
-    key="fac_decomp_h"
-)
-
-fac_include_intercept = st.checkbox(
-    "包含截距项 intercept_h{h}",
-    value=False,
-    key="fac_decomp_include_intercept"
-)
-
-btn_generate = st.button("生成因子贡献堆叠柱状图", type="primary", key="fac_decomp_btn")
-
-if btn_generate:
-    try:
-        # 读取 CSV
-        fac_df = load_factor_decomp_csv(fac_decomp_path)
-
-        # 绘制堆叠柱状图
-        fig_fac = make_contrib_stacked_bar_figure(fac_df, h=fac_h, include_intercept=fac_include_intercept)
-
-        st.plotly_chart(fig_fac, use_container_width=True)
-
-        # 可选：下载长表数据
-        with st.expander("下载长表数据"):
-            st.download_button(
-                "下载长表 CSV",
-                data=fac_df[['date'] + fac_df.columns[1:].tolist()].to_csv(index=False).encode('utf-8-sig'),
-                file_name=f"factor_contrib_total_h{fac_h}.csv",
-                mime="text/csv"
-            )
-
-    except Exception as e:
-        st.error(f"生成因子贡献堆叠柱状图失败：{type(e).__name__}: {e}")
-
 
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
@@ -1289,6 +1173,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
