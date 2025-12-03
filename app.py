@@ -343,6 +343,10 @@ else:
 
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
+@st.cache_data(show_spinner=False)
+def load_data():
+    # 重新加载数据的代码
+    return data
 
 
 # 创建堆叠柱状图
@@ -1270,6 +1274,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
