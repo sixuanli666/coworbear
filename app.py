@@ -8,7 +8,7 @@
 #     也支持页面内文件上传；并可选择分数列与指数列，计算四象限信号并作图。
 #   - 若需要导出主图 PNG，需要安装 kaleido。
 # ------------------------------
-st.cache_data.clear()
+
 import plotly.express as px
 
 import os
