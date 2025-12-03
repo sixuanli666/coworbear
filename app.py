@@ -359,26 +359,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         'f49_contrib_h16': 'orange',
         'f411_contrib_h16': 'pink'
     }
-    
-    # # 创建条形图，并应用颜色映射
-    # fig = px.bar(
-    #     df_filtered,
-    #     x='date',
-    #     y=columns_to_plot,
-    #     title=f"未来{period_label}周因子贡献",
-    #     labels={'date': '日期'},
-    #     # color_discrete_map=color_map,  # 使用自定义颜色映射
-    #     template='plotly_dark'
-    # )
-    
-   
-    # fig.update_layout(
-    #     xaxis_title='日期',
-    #     yaxis_title='贡献',
-    #     barmode='stack',
-    #     yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
-    #     height=600
-    # )
+
     # 使用 positive/negative 的辅助数据列
     df_positive = df_filtered.copy()
     df_negative = df_filtered.copy()
@@ -400,7 +381,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
    # 负值的柱子加上去
     fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data)
 
-    fig.update_traces(marker=dict(opacity=0.2))  # 设置透明度
+    fig.update_traces(marker=dict(opacity=1))  # 设置透明度
 
     # 调整布局
     fig.update_layout(
