@@ -402,10 +402,10 @@ def load_factor_decomp_csv(path: str) -> pd.DataFrame:
     return df
 
 
-def make_contrib_box_figure(df: pd.DataFrame, h: int, include_intercept: bool = False):
+def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept: bool = False):
     """
-    生成因子贡献箱线图（按日期）。
-    每个日期一个箱线图，显示每个因子的贡献（包括常数项）。
+    生成因子贡献堆叠柱状图（按日期）。
+    每个日期对应一组堆叠柱状图，显示各个因子的具体贡献。
     """
     # 找出该 h 对应的 *_contrib_h{h} 列
     pattern = f"_h{h}"
@@ -422,22 +422,16 @@ def make_contrib_box_figure(df: pd.DataFrame, h: int, include_intercept: bool = 
         st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
         return None
 
-    # 重新格式化数据为长表，每个日期对应一个因子贡献的箱线图
-    long_df = pd.melt(df, id_vars=["date"], value_vars=fac_cols, 
-                      var_name="factor", value_name="contrib")
-
+    # 创建堆叠柱状图
     fig = go.Figure()
 
-    # 每个日期一个箱线图
-    for d, g in long_df.groupby('date'):
-        fig.add_trace(go.Box(
-            x=[d] * len(g),          # 所有点的 x 都是同一天
-            y=g['contrib'],
-            name=d.strftime('%Y-%m-%d'),
-            boxpoints='outliers',    # 只画离群点
-            marker=dict(size=2),
-            line=dict(width=1),
-            showlegend=False         # legend 不需要一大串日期
+    # 每个日期一个堆叠柱状图
+    for factor in fac_cols:
+        fig.add_trace(go.Bar(
+            x=df['date'], y=df[factor],
+            name=factor, 
+            hovertemplate=f"{factor}: %{y:.2f}",  # 每个因子的具体贡献
+            marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
         ))
 
     fig.update_layout(
@@ -445,6 +439,7 @@ def make_contrib_box_figure(df: pd.DataFrame, h: int, include_intercept: bool = 
         margin=dict(l=60, r=40, t=40, b=40),
         xaxis=dict(title='日期'),
         yaxis=dict(title=f'因子贡献（h={h}）'),
+        barmode='stack',  # 堆叠柱状图
         height=560,
     )
     return fig
@@ -452,7 +447,7 @@ def make_contrib_box_figure(df: pd.DataFrame, h: int, include_intercept: bool = 
 
 # ================== Streamlit UI ==================
 st.markdown("---")
-st.subheader("因子贡献箱线图（按时间）")
+st.subheader("因子贡献堆叠柱状图（按时间）")
 
 # 读取数据
 fac_decomp_path = st.text_input(
@@ -474,15 +469,15 @@ fac_include_intercept = st.checkbox(
     key="fac_decomp_include_intercept"
 )
 
-btn_generate = st.button("生成因子贡献箱线图", type="primary", key="fac_decomp_btn")
+btn_generate = st.button("生成因子贡献堆叠柱状图", type="primary", key="fac_decomp_btn")
 
 if btn_generate:
     try:
         # 读取 CSV
         fac_df = load_factor_decomp_csv(fac_decomp_path)
 
-        # 绘制箱线图
-        fig_fac = make_contrib_box_figure(fac_df, h=fac_h, include_intercept=fac_include_intercept)
+        # 绘制堆叠柱状图
+        fig_fac = make_contrib_stacked_bar_figure(fac_df, h=fac_h, include_intercept=fac_include_intercept)
 
         st.plotly_chart(fig_fac, use_container_width=True)
 
@@ -490,13 +485,13 @@ if btn_generate:
         with st.expander("下载长表数据"):
             st.download_button(
                 "下载长表 CSV",
-                data=fac_df[['date', 'total_contrib']].to_csv(index=False).encode('utf-8-sig'),
+                data=fac_df[['date'] + fac_df.columns[1:].tolist()].to_csv(index=False).encode('utf-8-sig'),
                 file_name=f"factor_contrib_total_h{fac_h}.csv",
                 mime="text/csv"
             )
 
     except Exception as e:
-        st.error(f"生成因子贡献箱线图失败：{type(e).__name__}: {e}")
+        st.error(f"生成因子贡献堆叠柱状图失败：{type(e).__name__}: {e}")
 
 
 
@@ -1331,6 +1326,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
