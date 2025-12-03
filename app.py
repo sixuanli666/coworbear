@@ -377,19 +377,24 @@ def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept:
         st.warning(f"没有找到 h={h} 对应的 *_contrib_h{h} 列，请检查 CSV 列名。")
         return None
 
-    df[fac_cols]=pd.to_numeric(df[fac_cols],errors='coerce')
-    # 创建堆叠柱状图
+    # 确保列数据为数值型，并处理空值
+    df[fac_cols] = df[fac_cols].apply(pd.to_numeric, errors='coerce')
+
+    # 如果某些列还是空的，可能需要进一步处理
+    if df[fac_cols].isna().any().any():
+        st.warning("某些因子列包含空值，已转换为 NaN。")
+
+    # 生成堆叠柱状图
     fig = go.Figure()
     
-    # 每个日期一个堆叠柱状图
+    # 每个日期对应一组堆叠柱状图
     for factor in fac_cols:
         fig.add_trace(go.Bar(
-    x=df['date'], y=df[factor],
-    name=factor, 
-    hovertemplate=f"{factor}: %{y:.2f}",  # Plotly 会自动解析 %{y}
-    marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
-))
-
+            x=df['date'], y=df[factor],
+            name=factor, 
+            hovertemplate=f"{factor}: %{y:.2f}",  # Plotly 会自动解析 %{y}
+            marker=dict(line=dict(width=0)),  # 去掉柱子之间的空隙
+        ))
 
     fig.update_layout(
         template='plotly_dark',
@@ -400,6 +405,7 @@ def make_contrib_stacked_bar_figure(df: pd.DataFrame, h: int, include_intercept:
         height=560,
     )
     return fig
+
 
 
 # ================== Streamlit UI ==================
@@ -1283,6 +1289,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
