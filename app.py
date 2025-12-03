@@ -369,7 +369,7 @@ st.caption('本应用展示因子贡献的堆叠柱状图，选择要展示的�
 with st.sidebar:
     st.header('因子贡献堆叠图参数')
     default_path = get_path("factor_decomp_all_h")
-    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。')
+    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。', key='use_default_toggle')
     uploaded = None
     if not use_default:
         uploaded = st.file_uploader('上传 CSV（含 date 与因子贡献列）', type=['csv'])
@@ -1250,6 +1250,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
