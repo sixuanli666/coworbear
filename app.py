@@ -411,6 +411,21 @@ df['date']=pd.to_datetime(df['date'])
 for col in columns_to_plot:
     df[f'{col}_pos'] = df[col].apply(lambda x: x if x > 0 else 0)
     df[f'{col}_neg'] = df[col].apply(lambda x: x if x < 0 else 0)
+
+# 创建正负值列并更新 columns_to_plot
+new_columns_to_plot = []
+for col in columns_to_plot:
+    # 创建正负值列
+    df[f'{col}_pos'] = df[col].apply(lambda x: x if x > 0 else 0)
+    df[f'{col}_neg'] = df[col].apply(lambda x: x if x < 0 else 0)
+    
+    # 添加正值列和负值列到新的 columns_to_plot 列表
+    new_columns_to_plot.append(f'{col}_pos')
+    new_columns_to_plot.append(f'{col}_neg')
+
+# 更新 columns_to_plot
+columns_to_plot = new_columns_to_plot
+
 # 让用户选择周期长度
 period_label = st.selectbox(
     "选择周期长度",
@@ -1267,6 +1282,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
