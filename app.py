@@ -343,7 +343,7 @@ else:
 # 加载CSV数据
 def load_data(file_path):
     return pd.read_csv(file_path)
- 创建堆叠柱状图
+#创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_filtered = df[['date'] + columns_to_plot].dropna(subset=columns_to_plot)
     fig = px.bar(
@@ -1252,6 +1252,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
