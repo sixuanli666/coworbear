@@ -344,7 +344,8 @@ else:
 # ================== 获取因子堆叠柱状图
 #创建堆叠柱状图
 def create_stacked_bar_chart(df, columns_to_plot, period_label):
-    df_filtered = df[['date'] + columns_to_plot].dropna(subset=columns_to_plot)
+    # df_filtered = df[['date'] + columns_to_plot].dropna(subset=columns_to_plot)
+    df_filtered = df[['date'] + columns_to_plot]
     fig = px.bar(
         df_filtered,
         x='date',
@@ -358,7 +359,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
-        height=800
+        height=600
     )
     return fig
 
@@ -1255,6 +1256,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
