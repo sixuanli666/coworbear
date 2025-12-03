@@ -384,9 +384,9 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     df_negative = df_filtered.copy()
 
     # 负值部分用 NaN 替换正值
-    df_positive[df_positive < 0] = 0
+    df_positive[df_positive[columns_to_plot] < 0] = 0
     # 正值部分用 NaN 替换负值
-    df_negative[df_negative > 0] = 0
+    df_negative[df_negative[columns_to_plot] > 0] = 0
 
     # 合并正负部分数据
     fig = px.bar(df_positive, x='date', y=['因子1', '因子2', '因子3'],
