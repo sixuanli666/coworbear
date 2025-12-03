@@ -8,6 +8,9 @@
 #     也支持页面内文件上传；并可选择分数列与指数列，计算四象限信号并作图。
 #   - 若需要导出主图 PNG，需要安装 kaleido。
 # ------------------------------
+st.cache_data.clear()
+import plotly.express as px
+
 import os
 os.environ["PLOTLY_JSON_ENGINE"] = "json"
 
@@ -191,52 +194,7 @@ def resolve_first_existing(p: str) -> Path | None:
     return None
 
 
-# ================== 新增：按日期的截面箱线图 ==================
-def make_box_figure(df: pd.DataFrame, score_col: str):
-    """
-    输入：
-        df: 至少包含 ['date', score_col]，且是“多股票 × 多日期”的长表。
-        score_col: 要展示的因子列，比如 'score_h16_predret'。
-    输出：
-        Plotly Figure（横轴为日期，每个日期一个箱型）。
-    """
-    # 保证日期与数值
-    data = df.copy()
-    data['date'] = pd.to_datetime(data['date'], errors='coerce')
-    data[score_col] = pd.to_numeric(data[score_col], errors='coerce')
-    data = data.dropna(subset=['date', score_col])
-    if data.empty:
-        return None
 
-    # 为了性能，给个温柔的提醒：如果日期太多，界面可能略卡
-    n_dates = data['date'].nunique()
-    if n_dates > 250:
-        # 这里只做提示，不做强制裁剪，方便你自己控制 start_date
-        st.warning(f"当前用于箱线图的日期有 {n_dates} 个，可能会稍慢，建议在侧边栏缩短起始日期。")
-
-    fig = go.Figure()
-
-    # 每个日期一个 box trace（横轴是时间）
-    # 注意：x 填同一个日期，Plotly 会自动按 x 位置排成一条时间轴上的 box 列
-    for d, g in data.groupby('date'):
-        fig.add_trace(go.Box(
-            x=[d] * len(g),          # 所有点的 x 都是同一天
-            y=g[score_col],
-            name=d.strftime('%Y-%m-%d'),
-            boxpoints='outliers',    # 只画离群点；如果不想要点可以改成 False
-            marker=dict(size=2),
-            line=dict(width=1),
-            showlegend=False         # legend 不需要一大串日期
-        ))
-
-    fig.update_layout(
-        template='plotly_dark',
-        margin=dict(l=60, r=40, t=40, b=40),
-        xaxis=dict(title='日期'),
-        yaxis=dict(title=f'{score_col} 截面分布'),
-        height=560,
-    )
-    return fig
 # ========== Streamlit UI ==========
 # —— 避免 ep_path 为空导致 value 被忽略 —— 
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
@@ -384,16 +342,97 @@ if not sig_df.empty:
 else:
     st.info('暂无信号。')
 
+# ================== 获取因子堆叠柱状图
+#创建堆叠柱状图
+@st.cache_data(show_spinner=False)
 
 
-# ========== 可选：在正文里配置因子释义（不想配置可忽略） ==========
-# with st.expander("（可选）配置因子名称与释义", expanded=False):
-#     st.caption("优先顺序：上传CSV/JSON > 粘贴JSON文本 > 内置默认映射。若都不提供，则仅显示列名。")
-#     fac_meta_file = st.file_uploader('上传因子字典（CSV或JSON）', type=['csv','json'], key='fac_meta_upl_main',
-#                                      help='CSV需含列：col,name,desc；JSON为 {列名: {"name": 名称, "desc": 释义}}')
-#     fac_meta_text = st.text_area('或粘贴JSON映射（可空）', value='',
-#                                  placeholder='{"f41": {"name": "动量(短期)", "desc": "近N日收益动量，衡量趋势延续性"}}',
-#                                  key='fac_meta_text_main')
+def create_stacked_bar_chart(df, columns_to_plot, period_label):
+    df_filtered = df[['date'] + columns_to_plot]
+    # 你可以根据因子名动态设置颜色，使得每个因子的正负贡献更明显
+
+    fig = px.bar(
+        df_filtered,
+        x='date',
+        y=columns_to_plot,
+        title=f"未来{period_label}周因子贡献",
+        labels={'date': '日期'},
+        color_discrete_map=color_map,  # 使用你定义的颜色映射
+        template='plotly_dark'
+    )
+    fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
+    fig.update_layout(
+        xaxis_title='日期',
+        yaxis_title='贡献',
+        barmode='stack',
+        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        height=600
+    )
+    return fig
+
+
+# 侧边栏：数据输入
+with st.sidebar:
+    st.header('因子贡献堆叠图参数')
+    default_path = get_path("factor_decomp_all_h")
+    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。', key='use_default_toggle')
+    uploaded = None
+    if not use_default:
+        uploaded = st.file_uploader('上传 CSV（含 date 与因子贡献列）', type=['csv'])
+
+# 读取数据
+try:
+    if use_default:
+        df = pd.read_csv(default_path)
+        
+    else:
+        if uploaded is None:
+            st.info('请在侧边栏上传 CSV，或启用“使用默认路径”。')
+            st.stop()
+        df = pd.read_csv(uploaded)
+except Exception as e:
+    st.error(f'读取 CSV 失败：{e}')
+    st.stop()
+
+# 选择展示列
+# columns_to_plot = [
+#     'f41_contrib_h16', 'f42_contrib_h16', 'f43_contrib_h16',
+#     'f45_contrib_h16', 'f49_contrib_h16', 'f411_contrib_h16',
+#     'intercept_h16', 'score_h16_predret'
+# ]
+columns_to_plot = [
+    'f41_contrib_h16', 'f42_contrib_h16', 'f43_contrib_h16',
+    'f45_contrib_h16', 'f49_contrib_h16', 'f411_contrib_h16',
+    'intercept_h16'
+]
+df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
+df['date']=pd.to_datetime(df['date'])
+
+
+# 让用户选择周期长度
+period_label = st.selectbox(
+    "选择周期长度",
+    options=[8, 12, 16, 24, 32],
+    index=2  # 默认选择16周
+)
+
+# 更新因子列名称以适应不同周期
+columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
+st.write(df[df['date'] == '2025-11-28'][['f45_contrib_h16', 'f49_contrib_h16']])
+
+# 创建堆叠柱状图
+fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
+st.plotly_chart(fig, use_container_width=True)
+
+# 导出功能
+with st.expander('导出数据'):
+    st.download_button(
+        '下载数据',
+        data=df.to_csv(index=False).encode('utf-8-sig'),
+        file_name=f'factor_contributions_{period_label}weeks.csv',
+        mime='text/csv'
+    )
+
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
@@ -1226,6 +1265,48 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
