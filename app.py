@@ -380,13 +380,13 @@ with st.sidebar:
 # 读取数据
 try:
     if use_default:
-        df = load_data(default_path)
+        df = pd.read_csv(default_path)
         
     else:
         if uploaded is None:
             st.info('请在侧边栏上传 CSV，或启用“使用默认路径”。')
             st.stop()
-        df = load_data(uploaded)
+        df = pd.read_csv(uploaded)
 except Exception as e:
     st.error(f'读取 CSV 失败：{e}')
     st.stop()
@@ -1252,6 +1252,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
