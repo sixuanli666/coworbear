@@ -400,7 +400,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
    # 负值的柱子加上去
     fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data)
 
-    fig.update_traces(marker=dict(opacity=0.7))  # 设置透明度
+    fig.update_traces(marker=dict(opacity=0.2))  # 设置透明度
 
     # 调整布局
     fig.update_layout(
