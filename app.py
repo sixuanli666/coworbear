@@ -191,52 +191,52 @@ def resolve_first_existing(p: str) -> Path | None:
     return None
 
 
-# ================== 新增：按日期的截面箱线图 ==================
-def make_box_figure(df: pd.DataFrame, score_col: str):
-    """
-    输入：
-        df: 至少包含 ['date', score_col]，且是“多股票 × 多日期”的长表。
-        score_col: 要展示的因子列，比如 'score_h16_predret'。
-    输出：
-        Plotly Figure（横轴为日期，每个日期一个箱型）。
-    """
-    # 保证日期与数值
-    data = df.copy()
-    data['date'] = pd.to_datetime(data['date'], errors='coerce')
-    data[score_col] = pd.to_numeric(data[score_col], errors='coerce')
-    data = data.dropna(subset=['date', score_col])
-    if data.empty:
-        return None
+# # ================== 新增：按日期的截面箱线图 ==================
+# def make_box_figure(df: pd.DataFrame, score_col: str):
+#     """
+#     输入：
+#         df: 至少包含 ['date', score_col]，且是“多股票 × 多日期”的长表。
+#         score_col: 要展示的因子列，比如 'score_h16_predret'。
+#     输出：
+#         Plotly Figure（横轴为日期，每个日期一个箱型）。
+#     """
+#     # 保证日期与数值
+#     data = df.copy()
+#     data['date'] = pd.to_datetime(data['date'], errors='coerce')
+#     data[score_col] = pd.to_numeric(data[score_col], errors='coerce')
+#     data = data.dropna(subset=['date', score_col])
+#     if data.empty:
+#         return None
 
-    # 为了性能，给个温柔的提醒：如果日期太多，界面可能略卡
-    n_dates = data['date'].nunique()
-    if n_dates > 250:
-        # 这里只做提示，不做强制裁剪，方便你自己控制 start_date
-        st.warning(f"当前用于箱线图的日期有 {n_dates} 个，可能会稍慢，建议在侧边栏缩短起始日期。")
+#     # 为了性能，给个温柔的提醒：如果日期太多，界面可能略卡
+#     n_dates = data['date'].nunique()
+#     if n_dates > 250:
+#         # 这里只做提示，不做强制裁剪，方便你自己控制 start_date
+#         st.warning(f"当前用于箱线图的日期有 {n_dates} 个，可能会稍慢，建议在侧边栏缩短起始日期。")
 
-    fig = go.Figure()
+#     fig = go.Figure()
 
-    # 每个日期一个 box trace（横轴是时间）
-    # 注意：x 填同一个日期，Plotly 会自动按 x 位置排成一条时间轴上的 box 列
-    for d, g in data.groupby('date'):
-        fig.add_trace(go.Box(
-            x=[d] * len(g),          # 所有点的 x 都是同一天
-            y=g[score_col],
-            name=d.strftime('%Y-%m-%d'),
-            boxpoints='outliers',    # 只画离群点；如果不想要点可以改成 False
-            marker=dict(size=2),
-            line=dict(width=1),
-            showlegend=False         # legend 不需要一大串日期
-        ))
+#     # 每个日期一个 box trace（横轴是时间）
+#     # 注意：x 填同一个日期，Plotly 会自动按 x 位置排成一条时间轴上的 box 列
+#     for d, g in data.groupby('date'):
+#         fig.add_trace(go.Box(
+#             x=[d] * len(g),          # 所有点的 x 都是同一天
+#             y=g[score_col],
+#             name=d.strftime('%Y-%m-%d'),
+#             boxpoints='outliers',    # 只画离群点；如果不想要点可以改成 False
+#             marker=dict(size=2),
+#             line=dict(width=1),
+#             showlegend=False         # legend 不需要一大串日期
+#         ))
 
-    fig.update_layout(
-        template='plotly_dark',
-        margin=dict(l=60, r=40, t=40, b=40),
-        xaxis=dict(title='日期'),
-        yaxis=dict(title=f'{score_col} 截面分布'),
-        height=560,
-    )
-    return fig
+#     fig.update_layout(
+#         template='plotly_dark',
+#         margin=dict(l=60, r=40, t=40, b=40),
+#         xaxis=dict(title='日期'),
+#         yaxis=dict(title=f'{score_col} 截面分布'),
+#         height=560,
+#     )
+#     return fig
 # ========== Streamlit UI ==========
 # —— 避免 ep_path 为空导致 value 被忽略 —— 
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
@@ -1326,6 +1326,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
