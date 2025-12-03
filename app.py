@@ -359,6 +359,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         barmode='stack',
+        yaxis=dict(range=[-1, 1]),  # 根据因子的数值范围调整
         height=600
     )
     return fig
@@ -393,10 +394,15 @@ except Exception as e:
     st.stop()
 
 # 选择展示列
+# columns_to_plot = [
+#     'f41_contrib_h16', 'f42_contrib_h16', 'f43_contrib_h16',
+#     'f45_contrib_h16', 'f49_contrib_h16', 'f411_contrib_h16',
+#     'intercept_h16', 'score_h16_predret'
+# ]
 columns_to_plot = [
     'f41_contrib_h16', 'f42_contrib_h16', 'f43_contrib_h16',
     'f45_contrib_h16', 'f49_contrib_h16', 'f411_contrib_h16',
-    'intercept_h16', 'score_h16_predret'
+    'intercept_h16'
 ]
 df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
 df['date']=pd.to_datetime(df['date'])
@@ -1256,6 +1262,7 @@ else:
         #             col_idx += 1
         #     except Exception as e:
         #         st.warning(f"读取「{name}」PNG 失败：{e}")
+
 
 
 
