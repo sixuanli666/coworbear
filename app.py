@@ -54,7 +54,7 @@ IC通常判别标准：<br>
 - IC ≥ 0.1：较强<br>
 - IC ≥ 0.2：非常强<br>
 - IC ≥ 0.3：超强<br>
-- IC < 0：无效或负相关
+- IC < 0：无效或负相关<br>
 
 </div>
 """, unsafe_allow_html=True)
