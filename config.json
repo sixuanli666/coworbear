@@ -11,9 +11,11 @@
     "rot_daily_csv": "assets/2.1 大小盘轮动_日度价差与净值.csv",
     "rot_month_csv": "assets/2.1 大小盘轮动_月度收益与净值.csv",
     "rot_quarter_csv": "assets/2.1 大小盘轮动_季度收益与净值.csv",
-    "factor_decomp_all_h":"assets/因子回归分解_all_h.csv"
+    "factor_decomp_all_h":"assets/因子回归分解_all_h.csv",
+    "ic_result":"assets/因子回归加权_IC_summary.csv"
   }
 }
+
 
 
 
