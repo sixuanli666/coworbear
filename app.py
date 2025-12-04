@@ -47,7 +47,7 @@ st.title('自营牛熊因子模型可视化')
 st.subheader('最新时点因子及模型IC')
 # st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
 st.markdown("""
-<div style="line-height: 1.3; color: #808080;">
+<div style="line-height: 1.4; color: #808080;">
 在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。<br>
 IC通常判别标准：<br>
 - IC ≥ 0.05：良好<br>
@@ -59,20 +59,10 @@ IC通常判别标准：<br>
 """, unsafe_allow_html=True)
 
 
-# with st.expander("IC通常判别标准", expanded=False):
-#     st.write("""
-   
-# - IC ≥ 0.05：良好
-# - IC ≥ 0.1：较强
-# - IC ≥ 0.2：非常强
-# - IC ≥ 0.3：超强
-# - IC < 0：无效或负相关
-
-
-#     """)
 # #读取IC结果
 IC_path=get_path("ic_result")
 IC_df=pd.read_csv(IC_path)
+IC_df.rename({'horizon_w':'窗口期（未来几周)','factor':'因子','type':'因子类型','N':'样本数量','pearson':'pearson相关系数IC','spearman_ic':'spearman相关系数IC'}
 st.write(IC_df)
 
 
