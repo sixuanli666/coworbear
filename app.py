@@ -369,7 +369,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     # 正值部分用 NaN 替换负值
     df_negative[df_negative[columns_to_plot] > 0] = 0
 
-    # 创建堆叠柱状图
+    # 创建正值堆叠柱状图
     fig = px.bar(df_positive, x='date', y=columns_to_plot,
                  title=f"未来{period_label}周因子贡献",
                  labels={'date': '日期'},
@@ -377,8 +377,13 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
                  color_discrete_map=color_map,  # 使用自定义颜色映射
                  barmode='stack')  # 堆叠模式
     
-    # 负值的柱子加上去
-    fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data)
+    # 创建负值堆叠柱状图
+    negative_traces = px.bar(df_negative, x='date', y=columns_to_plot).data
+    for trace in negative_traces:
+        trace.name = f"{trace.name}_negative"  # 为负值柱子添加唯一标注
+
+    # 将负值的柱子添加到图表
+    fig.add_traces(negative_traces)
 
     # 更新图例名称为唯一
     for i, trace in enumerate(fig.data):
@@ -394,6 +399,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         height=600
     )
     return fig
+
 
 
 
