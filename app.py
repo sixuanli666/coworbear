@@ -499,13 +499,15 @@ with st.expander('导出数据'):
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
 
-with st.expander("以下图形主要展示各因子暴露（因子数值）", expanded=False):
-    st.write("""
+# with st.expander("以下图形主要展示各因子暴露（因子数值）", expanded=False):
+#     st.write("""
    
-- 各个因子数值中我们定”牛顶“数值为1，”熊底”数值为-1，其他为0
+# - 各个因子数值中我们定”牛顶“数值为1，”熊底”数值为-1，其他为0
 
 
-    """)
+#     """)
+
+st.caption('以下图形主要展示各因子数值，各个因子数值中定”牛顶“数值为1，”熊底”数值为-1，其他为0')
 
 import os
 from PIL import Image
