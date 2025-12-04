@@ -470,7 +470,7 @@ df['date']=pd.to_datetime(df['date'])
 st.subheader('查看因子贡献')
 
 period_label = st.selectbox(
-    "选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周"）,
+    "选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）",
     options=[1, 4, 8, 12, 16, 20],
     index=2  # 默认选择16周
 )
