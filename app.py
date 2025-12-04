@@ -203,7 +203,7 @@ if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
 st.set_page_config(page_title='因子综合打分 · 交互可视化', layout='wide')
 st.title('因子综合打分交互可视化')
 
-st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV；选择分数列与指数列后进行可视化与信号标注。')
+# st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV；选择分数列与指数列后进行可视化与信号标注。')
 
 # 侧边栏：数据输入
 with st.sidebar:
@@ -450,6 +450,18 @@ period_label = st.selectbox(
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
 
 st.subheader('因子及模型IC')
+st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
+with st.expander("IC通常判别标准", expanded=False):
+    st.write("""
+   
+- IC ≥ 0.05：良好
+- IC ≥ 0.1：较强
+- IC ≥ 0.2：非常强
+- IC ≥ 0.3：超强
+- IC < 0：无效或负相关
+
+
+    """)
 #读取IC结果
 IC_path=get_path("ic_result")
 IC_df=pd.read_csv(IC_path)
@@ -472,17 +484,10 @@ with st.expander('导出数据'):
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
 
-with st.expander("由于建模过程中发现未来16周指数收益率回归效果最好，因此仅展示各因子与上证综指指数未来16周IC关系：", expanded=False):
+with st.expander("以下图形主要展示各因子暴露（因子数值）", expanded=False):
     st.write("""
    
-- [h=16] score_h16_predret vs ret_fut_16w: Pearson=0.2237  Spearman(IC)=0.2260
-- [h=16] score_h16_noint  vs ret_fut_16w: Pearson=0.0700 Spearman(IC)=0.1638
-- [h=16] f41  vs ret_fut_16w: Pearson=-0.0784 Spearman(IC)=-0.0885
-- [h=16] f42  vs ret_fut_16w: Pearson=0.2156 Spearman(IC)=0.1296
-- [h=16] f43  vs ret_fut_16w: Pearson=-0.1715 Spearman(IC)=-0.2132
-- [h=16] f45  vs ret_fut_16w: Pearson=-0.0773 Spearman(IC)=-0.1000
-- [h=16] f49  vs ret_fut_16w: Pearson=0.0228 Spearman(IC)=0.0655
-- [h=16] f411  vs ret_fut_16w: Pearson=-0.0958 Spearman(IC)=-0.1141
+- 各个因子数值中我们定”牛顶“数值为1，”熊底”数值为-1，其他为0
 
 
     """)
