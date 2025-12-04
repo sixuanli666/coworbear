@@ -368,6 +368,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     
     # 正值部分用 NaN 替换负值 
     df_negative[df_negative[columns_to_plot] > 0] = 0 
+
     
     # 创建正值的堆叠柱状图
     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
@@ -393,7 +394,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         yaxis=dict(range=[-1, 1]),  # 根据因子的数值范围调整
-        height=500
+        height=800
     ) 
     
     return fig
