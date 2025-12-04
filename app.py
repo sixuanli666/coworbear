@@ -364,7 +364,8 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
                  title=f"未来{period_label}周因子贡献", 
                  labels={'date': '日期'}, 
                  template='plotly_dark', 
-                 color_discrete_map=color_map, # 使用自定义颜色映射 barmode='stack') 
+                 color_discrete_map=color_map, # 使用自定义颜色映射
+                 barmode='stack') 
     # 堆叠模式 # 负值的柱子加上去 
     fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data) 
     # 更新图例名称为唯一 
