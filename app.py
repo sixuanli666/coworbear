@@ -344,7 +344,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 # 下载主图（PNG）
-with st.expander('导出主图 / 数据'):
+with st.expander('导出数据'):
     # st.write('若下载 PNG 失败，请先 `pip install -U kaleido`。')
     colA, colB, colC = st.columns(3)
     with colA:
