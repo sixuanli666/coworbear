@@ -43,7 +43,7 @@ def get_path(key):
     return CONFIG["paths"].get(key, "")
 
 #================展示模型IC
-st.title('宏观类牛熊因子模型可视化')
+st.title('自营牛熊因子模型可视化')
 st.subheader('最新时点因子及模型IC')
 # st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
 st.markdown("""
