@@ -235,7 +235,7 @@ def resolve_first_existing(p: str) -> Path | None:
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
     st.session_state["ep_path"] = get_path("div_result_csv2")
 
-st.set_page_config(page_title='宏观类牛熊因子模型', layout='wide')
+st.set_page_config(page_title='自营牛熊因子模型', layout='wide')
 
 
 # st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV；选择分数列与指数列后进行可视化与信号标注。')
