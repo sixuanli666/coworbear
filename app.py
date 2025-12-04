@@ -48,11 +48,11 @@ st.subheader('最新时点因子及模型IC')
 st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
 
 st.markdown('IC通常判别标准：')
-st.markdown('- IC ≥ 0.05：良好')
-st.markdown('- IC ≥ 0.1：较强')
-st.markdown('- IC ≥ 0.2：非常强')
-st.markdown('- IC ≥ 0.3：超强')
-st.markdown('- IC < 0：无效或负相关')
+st.markdown(' IC ≥ 0.05：良好')
+st.markdown(' IC ≥ 0.1：较强')
+st.markdown(' IC ≥ 0.2：非常强')
+st.markdown(' IC ≥ 0.3：超强')
+st.markdown(' IC < 0：无效或负相关')
 
 # with st.expander("IC通常判别标准", expanded=False):
 #     st.write("""
