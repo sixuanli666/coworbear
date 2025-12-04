@@ -449,7 +449,7 @@ period_label = st.selectbox(
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
 
-
+st.subheader('因子及模型IC')
 #读取IC结果
 IC_path=get_path("ic_result")
 IC_df=pd.read_csv(IC_path)
