@@ -448,7 +448,12 @@ period_label = st.selectbox(
 
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
-# st.write(df[df['date'] == '2025-11-28'][['f45_contrib_h16', 'f49_contrib_h16']])
+
+
+#读取IC结果
+IC_path=get_path("factor_decomp_all_h")
+IC_df=pd.read_csv(IC_path)
+st.write(IC_df)
 
 # 创建堆叠柱状图
 fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
