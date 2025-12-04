@@ -401,7 +401,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
                  title=f"预测未来{period_label}周模型的因子贡献", 
                  labels={'date': '日期'}, 
-                 template='plotly_dark', 
+                 # template='plotly_dark', 
                  color_discrete_map=color_map,  # 使用自定义颜色映射
                  barmode='group')  # 堆叠模式 
     
