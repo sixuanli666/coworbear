@@ -47,7 +47,7 @@ st.title('宏观类牛熊因子模型可视化')
 st.subheader('最新时点因子及模型IC')
 st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
 st.markdown("""
-<div style="line-height: 1.2;">
+<div style="line-height: 1.3; color: #808080;">
 在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。<br>
 IC通常判别标准：<br>
 - IC ≥ 0.05：良好<br>
