@@ -380,7 +380,7 @@ else:
 
 
 def create_stacked_bar_chart(df, columns_to_plot, period_label): 
-    df_filtered = df[['date'] + columns_to_plot] 
+    df_filtered = df[['date'] + columns_to_plot]
     
     # 定义因子名称到颜色的映射 
     color_map = { 
@@ -392,44 +392,175 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         'f411_contrib_h16': 'pink' 
     } 
     
-    # 使用 positive/negative 的辅助数据列 
+    # 使用 positive/negative 的辅助数据列
     df_positive = df_filtered.copy() 
-    df_negative = df_filtered.copy() 
+    df_negative = df_filtered.copy()
     
-    # 负值部分用 NaN 替换正值 
-    df_positive[df_positive[columns_to_plot] < 0] = 0 
+    # 负值部分用 NaN 替换正值
+    df_positive[df_positive[columns_to_plot] < 0] = 0
     
-    # 正值部分用 NaN 替换负值 
-    df_negative[df_negative[columns_to_plot] > 0] = 0 
+    # 正值部分用 NaN 替换负值
+    df_negative[df_negative[columns_to_plot] > 0] = 0
     
-    # 创建正值的堆叠柱状图
-    fig = px.bar(df_positive, x='date', y=columns_to_plot, 
-                 title=f"未来{period_label}周因子贡献", 
-                 labels={'date': '日期'}, 
-                 template='plotly_dark', 
-                 color_discrete_map=color_map,  # 使用自定义颜色映射
-                 barmode='stack')  # 堆叠模式 
-    
-    # 添加负值柱子，不显示图例
-    negative_traces = px.bar(df_negative, x='date', y=columns_to_plot).data
-    for trace in negative_traces:
-        trace.showlegend = False  # 不显示负值柱子的图例
-    
-    # 将负值的柱子添加到图表
-    fig.add_traces(negative_traces)
-    
+    # 创建一个空图形
+    fig = go.Figure()
+
+    # 添加正值的柱状图，每个因子都独立显示
+    for col in columns_to_plot:
+        trace_positive = go.Bar(
+            x=df_positive['date'],
+            y=df_positive[col],
+            name=col,
+            marker_color=color_map.get(col, 'gray'),
+            barmode='group',  # 因子间并排展示，而不是叠加
+            showlegend=True  # 显示图例
+        )
+        fig.add_trace(trace_positive)
+
+    # 添加负值的柱状图，每个因子也独立显示
+    for col in columns_to_plot:
+        trace_negative = go.Bar(
+            x=df_negative['date'],
+            y=df_negative[col],
+            name=f"{col}_negative",  # 添加后缀避免重复
+            marker_color=color_map.get(col, 'gray'),
+            barmode='group',  # 负值也要并排显示
+            showlegend=False  # 负值部分不显示图例
+        )
+        fig.add_trace(trace_negative)
+
     # 设置透明度
     fig.update_traces(marker=dict(opacity=1)) 
     
-    # 调整布局
+    # 更新布局
     fig.update_layout(
+        title=f"未来{period_label}周因子贡献",
         xaxis_title='日期',
         yaxis_title='贡献',
         yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        barmode='group',  # 设置为并排显示
+        template='plotly_dark',
+        height=600
+    ) 
+    
+    return figdef create_stacked_bar_chart(df, columns_to_plot, period_label): 
+    df_filtered = df[['date'] + columns_to_plot]
+    
+    # 定义因子名称到颜色的映射 
+    color_map = { 
+        'f41_contrib_h16': 'blue', 
+        'f42_contrib_h16': 'green', 
+        'f43_contrib_h16': 'red', 
+        'f45_contrib_h16': 'purple', 
+        'f49_contrib_h16': 'orange', 
+        'f411_contrib_h16': 'pink' 
+    } 
+    
+    # 使用 positive/negative 的辅助数据列
+    df_positive = df_filtered.copy() 
+    df_negative = df_filtered.copy()
+    
+    # 负值部分用 NaN 替换正值
+    df_positive[df_positive[columns_to_plot] < 0] = 0
+    
+    # 正值部分用 NaN 替换负值
+    df_negative[df_negative[columns_to_plot] > 0] = 0
+    
+    # 创建一个空图形
+    fig = go.Figure()
+
+    # 添加正值的柱状图，每个因子都独立显示
+    for col in columns_to_plot:
+        trace_positive = go.Bar(
+            x=df_positive['date'],
+            y=df_positive[col],
+            name=col,
+            marker_color=color_map.get(col, 'gray'),
+            barmode='group',  # 因子间并排展示，而不是叠加
+            showlegend=True  # 显示图例
+        )
+        fig.add_trace(trace_positive)
+
+    # 添加负值的柱状图，每个因子也独立显示
+    for col in columns_to_plot:
+        trace_negative = go.Bar(
+            x=df_negative['date'],
+            y=df_negative[col],
+            name=f"{col}_negative",  # 添加后缀避免重复
+            marker_color=color_map.get(col, 'gray'),
+            barmode='group',  # 负值也要并排显示
+            showlegend=False  # 负值部分不显示图例
+        )
+        fig.add_trace(trace_negative)
+
+    # 设置透明度
+    fig.update_traces(marker=dict(opacity=1)) 
+    
+    # 更新布局
+    fig.update_layout(
+        title=f"未来{period_label}周因子贡献",
+        xaxis_title='日期',
+        yaxis_title='贡献',
+        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        barmode='group',  # 设置为并排显示
+        template='plotly_dark',
         height=600
     ) 
     
     return fig
+
+
+# def create_stacked_bar_chart(df, columns_to_plot, period_label): 
+#     df_filtered = df[['date'] + columns_to_plot] 
+    
+#     # 定义因子名称到颜色的映射 
+#     color_map = { 
+#         'f41_contrib_h16': 'blue', 
+#         'f42_contrib_h16': 'green', 
+#         'f43_contrib_h16': 'red', 
+#         'f45_contrib_h16': 'purple', 
+#         'f49_contrib_h16': 'orange', 
+#         'f411_contrib_h16': 'pink' 
+#     } 
+    
+#     # 使用 positive/negative 的辅助数据列 
+#     df_positive = df_filtered.copy() 
+#     df_negative = df_filtered.copy() 
+    
+#     # 负值部分用 NaN 替换正值 
+#     df_positive[df_positive[columns_to_plot] < 0] = 0 
+    
+#     # 正值部分用 NaN 替换负值 
+#     df_negative[df_negative[columns_to_plot] > 0] = 0 
+    
+#     # 创建正值的堆叠柱状图
+#     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
+#                  title=f"未来{period_label}周因子贡献", 
+#                  labels={'date': '日期'}, 
+#                  template='plotly_dark', 
+#                  color_discrete_map=color_map,  # 使用自定义颜色映射
+#                  barmode='stack')  # 堆叠模式 
+    
+#     # 添加负值柱子，不显示图例
+#     negative_traces = px.bar(df_negative, x='date', y=columns_to_plot).data
+#     for trace in negative_traces:
+#         trace.showlegend = False  # 不显示负值柱子的图例
+    
+#     # 将负值的柱子添加到图表
+#     fig.add_traces(negative_traces)
+    
+#     # 设置透明度
+#     fig.update_traces(marker=dict(opacity=1)) 
+    
+#     # 调整布局
+#     fig.update_layout(
+#         xaxis_title='日期',
+#         yaxis_title='贡献',
+#         yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+#         height=600
+#     ) 
+    
+#     return fig
 
 
 
