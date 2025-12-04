@@ -371,7 +371,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     
     # 创建正值的堆叠柱状图
     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
-                 title=f"未来{period_label}周因子贡献", 
+                 title=f"预测未来{period_label}周各个因子贡献", 
                  labels={'date': '日期'}, 
                  template='plotly_dark', 
                  color_discrete_map=color_map,  # 使用自定义颜色映射
