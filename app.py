@@ -43,7 +43,8 @@ def get_path(key):
     return CONFIG["paths"].get(key, "")
 
 #================展示模型IC
-st.subheader('因子及模型IC')
+st.title('宏观类牛熊因子模型可视化')
+st.subheader('最新时点因子及模型IC')
 st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
 with st.expander("IC通常判别标准", expanded=False):
     st.write("""
@@ -221,8 +222,8 @@ def resolve_first_existing(p: str) -> Path | None:
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
     st.session_state["ep_path"] = get_path("div_result_csv2")
 
-st.set_page_config(page_title='因子综合打分 · 交互可视化', layout='wide')
-st.title('因子综合打分交互可视化')
+st.set_page_config(page_title='宏观类牛熊因子模型', layout='wide')
+
 
 # st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV；选择分数列与指数列后进行可视化与信号标注。')
 
