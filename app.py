@@ -407,7 +407,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
                  barmode='group')  # 堆叠模式 
     
     # 添加负值柱子，不显示图例
-    negative_traces = px.bar(df_negative, x='date', y=columns_to_plot).data
+    negative_traces = px.bar(df_negative, x='date', y=columns_to_plot,color_discrete_map=color_map).data
     for trace in negative_traces:
         trace.showlegend = False  # 不显示负值柱子的图例
     
