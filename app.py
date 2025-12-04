@@ -439,7 +439,6 @@ columns_to_plot = [
 df = df.apply(lambda x: pd.to_numeric(x, errors='coerce') if x.name not in ['date'] else x)
 df['date']=pd.to_datetime(df['date'])
 
-
 # 让用户选择周期长度
 period_label = st.selectbox(
     "选择周期长度",
@@ -449,6 +448,8 @@ period_label = st.selectbox(
 
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
+
+df = df.dropna(subset=columns_to_plot_for_period, how='all')
 
 st.subheader('因子及模型IC')
 st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
