@@ -42,6 +42,26 @@ def get_path(key):
     """从 config.json 读取路径"""
     return CONFIG["paths"].get(key, "")
 
+#================展示模型IC
+st.subheader('因子及模型IC')
+st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
+with st.expander("IC通常判别标准", expanded=False):
+    st.write("""
+   
+- IC ≥ 0.05：良好
+- IC ≥ 0.1：较强
+- IC ≥ 0.2：非常强
+- IC ≥ 0.3：超强
+- IC < 0：无效或负相关
+
+
+    """)
+#读取IC结果
+IC_path=get_path("ic_result")
+IC_df=pd.read_csv(IC_path)
+st.write(IC_df)
+
+
 
 # ========== 工具函数 ==========
 
@@ -192,6 +212,7 @@ def resolve_first_existing(p: str) -> Path | None:
         except:
             pass
     return None
+
 
 
 
@@ -451,23 +472,6 @@ columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in co
 
 df = df.dropna(subset=columns_to_plot_for_period, how='all')
 
-st.subheader('因子及模型IC')
-st.caption('在量化模型中，IC（Information Coefficient，信息系数）通常用来衡量一个因子与未来收益之间的相关性。简单来说，IC 反映了因子的预测能力，即它与股票未来回报之间的线性关系。')
-with st.expander("IC通常判别标准", expanded=False):
-    st.write("""
-   
-- IC ≥ 0.05：良好
-- IC ≥ 0.1：较强
-- IC ≥ 0.2：非常强
-- IC ≥ 0.3：超强
-- IC < 0：无效或负相关
-
-
-    """)
-#读取IC结果
-IC_path=get_path("ic_result")
-IC_df=pd.read_csv(IC_path)
-st.write(IC_df)
 
 # 创建堆叠柱状图
 fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
