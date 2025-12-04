@@ -481,7 +481,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
         xaxis_title='日期',
         yaxis_title='贡献',
         yaxis=dict(range=[-1, 1]),  # 根据因子的数值范围调整
-        height=800
+        height=500
     ) 
     
     return fig
