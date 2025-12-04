@@ -451,7 +451,7 @@ columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in co
 
 
 #读取IC结果
-IC_path=get_path("factor_decomp_all_h")
+IC_path=get_path("ic_result")
 IC_df=pd.read_csv(IC_path)
 st.write(IC_df)
 
