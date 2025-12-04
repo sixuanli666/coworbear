@@ -62,7 +62,7 @@ IC通常判别标准：<br>
 # #读取IC结果
 IC_path=get_path("ic_result")
 IC_df=pd.read_csv(IC_path)
-IC_df.rename({'horizon_w':'窗口期（未来几周)','factor':'因子','type':'因子类型','N':'样本数量','pearson':'pearson相关系数IC','spearman_ic':'spearman相关系数IC'}
+IC_df=IC_df.rename({'horizon_w':'窗口期（未来几周)','factor':'因子','type':'因子类型','N':'样本数量','pearson':'pearson相关系数IC','spearman_ic':'spearman相关系数IC'})
 st.write(IC_df)
 
 
