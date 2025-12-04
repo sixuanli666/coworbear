@@ -347,35 +347,88 @@ else:
 @st.cache_data(show_spinner=False)
 
 
+# def create_stacked_bar_chart(df, columns_to_plot, period_label): 
+#     df_filtered = df[['date'] + columns_to_plot] # 定义因子名称到颜色的映射 
+#     color_map = { 'f41_contrib_h16': 'blue', 
+#                  'f42_contrib_h16': 'green', 
+#                  'f43_contrib_h16': 'red', 
+#                  'f45_contrib_h16': 'purple', 
+#                  'f49_contrib_h16': 'orange', 
+#                  'f411_contrib_h16': 'pink' } # 使用 positive/negative 的辅助数据列 
+#     df_positive = df_filtered.copy() 
+#     df_negative = df_filtered.copy() # 负值部分用 NaN 替换正值 
+#     df_positive[df_positive[columns_to_plot] < 0] = 0 # 正值部分用 NaN 替换负值 
+#     df_negative[df_negative[columns_to_plot] > 0] = 0 
+#     # 创建堆叠柱状图 
+#     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
+#                  title=f"未来{period_label}周因子贡献", 
+#                  labels={'date': '日期'}, 
+#                  template='plotly_dark', 
+#                  color_discrete_map=color_map, # 使用自定义颜色映射
+#                  barmode='stack') 
+#     # 堆叠模式 # 负值的柱子加上去 
+#     fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data) 
+#     # 更新图例名称为唯一 
+#     for i, trace in enumerate(fig.data): 
+#         trace.name = f"{trace.name}_unique" 
+#     # 为每个trace添加唯一的标注 
+#         fig.update_traces(marker=dict(opacity=1)) # 设置透明度 
+#     # 调整布局 
+#         fig.update_layout( xaxis_title='日期', yaxis_title='贡献', yaxis=dict(range=[-0.5, 0.5]), # 根据因子的数值范围调整 
+#                           height=600 ) 
+#     return fig
+
+
 def create_stacked_bar_chart(df, columns_to_plot, period_label): 
-    df_filtered = df[['date'] + columns_to_plot] # 定义因子名称到颜色的映射 
-    color_map = { 'f41_contrib_h16': 'blue', 
-                 'f42_contrib_h16': 'green', 
-                 'f43_contrib_h16': 'red', 
-                 'f45_contrib_h16': 'purple', 
-                 'f49_contrib_h16': 'orange', 
-                 'f411_contrib_h16': 'pink' } # 使用 positive/negative 的辅助数据列 
+    df_filtered = df[['date'] + columns_to_plot] 
+    
+    # 定义因子名称到颜色的映射 
+    color_map = { 
+        'f41_contrib_h16': 'blue', 
+        'f42_contrib_h16': 'green', 
+        'f43_contrib_h16': 'red', 
+        'f45_contrib_h16': 'purple', 
+        'f49_contrib_h16': 'orange', 
+        'f411_contrib_h16': 'pink' 
+    } 
+    
+    # 使用 positive/negative 的辅助数据列 
     df_positive = df_filtered.copy() 
-    df_negative = df_filtered.copy() # 负值部分用 NaN 替换正值 
-    df_positive[df_positive[columns_to_plot] < 0] = 0 # 正值部分用 NaN 替换负值 
+    df_negative = df_filtered.copy() 
+    
+    # 负值部分用 NaN 替换正值 
+    df_positive[df_positive[columns_to_plot] < 0] = 0 
+    
+    # 正值部分用 NaN 替换负值 
     df_negative[df_negative[columns_to_plot] > 0] = 0 
-    # 创建堆叠柱状图 
+    
+    # 创建正值的堆叠柱状图
     fig = px.bar(df_positive, x='date', y=columns_to_plot, 
                  title=f"未来{period_label}周因子贡献", 
                  labels={'date': '日期'}, 
                  template='plotly_dark', 
-                 color_discrete_map=color_map, # 使用自定义颜色映射
-                 barmode='stack') 
-    # 堆叠模式 # 负值的柱子加上去 
-    fig.add_traces(px.bar(df_negative, x='date', y=columns_to_plot).data) 
-    # 更新图例名称为唯一 
-    for i, trace in enumerate(fig.data): 
-        trace.name = f"{trace.name}_unique" 
-    # 为每个trace添加唯一的标注 
-        fig.update_traces(marker=dict(opacity=1)) # 设置透明度 
-    # 调整布局 
-        fig.update_layout( xaxis_title='日期', yaxis_title='贡献', yaxis=dict(range=[-0.5, 0.5]), # 根据因子的数值范围调整 
-                          height=600 ) 
+                 color_discrete_map=color_map,  # 使用自定义颜色映射
+                 barmode='stack')  # 堆叠模式 
+    
+    # 添加负值柱子，不显示图例
+    negative_traces = px.bar(df_negative, x='date', y=columns_to_plot).data
+    for trace in negative_traces:
+        trace.showlegend = False  # 不显示负值柱子的图例
+    
+    # 将负值的柱子添加到图表
+    fig.add_traces(negative_traces)
+    
+    # 设置透明度
+    fig.update_traces(marker=dict(opacity=1)) 
+    
+    # 调整布局
+    fig.update_layout(
+        xaxis_title='日期',
+        yaxis_title='贡献',
+        yaxis=dict(range=[-0.5, 0.5]),  # 根据因子的数值范围调整
+        height=600
+    ) 
+    
     return fig
 
 
