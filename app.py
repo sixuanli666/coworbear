@@ -61,8 +61,8 @@ IC通常判别标准：<br>
 latest_time_path=get_path('factor_decomp_all_h')
 latest_time=pd.read_csv(latest_time_path)
 latest_time['date']=pd.to_datetime(latest_time['date'])
-latest_time=max(latest_time['date'])
-first_time=min(latest_time['date'])
+latest_time=latest_time['date'].max()
+first_time=latest_time['date'].min()
 
 st.caption(f"数据时点：{first_time} ~ {latest_time}")
 
