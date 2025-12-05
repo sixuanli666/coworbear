@@ -58,7 +58,7 @@ IC通常判别标准：<br>
 
 </div>
 """, unsafe_allow_html=True)
-
+latest_time_path=get_path(')
 
 # #读取IC结果
 IC_path=get_path("ic_result")
