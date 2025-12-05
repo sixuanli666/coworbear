@@ -61,10 +61,23 @@ IC通常判别标准：<br>
 latest_time_path=get_path('factor_decomp_all_h')
 latest_time=pd.read_csv(latest_time_path)
 latest_time['date']=pd.to_datetime(latest_time['date'])
-latest_time=latest_time['date'].max()
-first_time=latest_time['date'].min()
+latest_time_max=latest_time['date'].max()
+first_time_min=latest_time['date'].min()
 
-st.caption(f"数据时点：{first_time} ~ {latest_time}")
+st.caption(f"数据时点：{first_time_min} ~ {latest_time_max}")
+
+
+# latest_time_path = get_path('factor_decomp_all_h')  # 获取文件路径
+# latest_time = pd.read_csv(latest_time_path)  # 读取CSV文件
+# latest_time['date'] = pd.to_datetime(latest_time['date'])  # 转换为日期时间格式
+
+# # 获取最大日期和最小日期
+# latest_time_max = latest_time['date'].max()  # 获取最大日期
+# first_time_min = latest_time['date'].min()  # 获取最小日期
+
+# # 显示数据时点
+# st.caption(f"数据时点：{first_time_min} ~ {latest_time_max}")
+
 
 # #读取IC结果
 IC_path=get_path("ic_result")
