@@ -58,7 +58,13 @@ IC通常判别标准：<br>
 
 </div>
 """, unsafe_allow_html=True)
-latest_time_path=get_path(')
+latest_time_path=get_path('factor_decomp_all_h')
+latest_time=pd.read_csv(latest_time_path)
+latest_time['date']=pd.to_datetime(latest_time['date'])
+latest_time=max(latest_time['date'])
+first_time=min(latest_time['date'])
+
+st.caption(f"数据时点：{first_time} ~ {latest_time}")
 
 # #读取IC结果
 IC_path=get_path("ic_result")
