@@ -190,6 +190,8 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
     if not signals.empty:
         buys = signals[signals['type'] == '强买']
         sells = signals[signals['type'] == '强卖']
+        print(buys.head())
+
         if len(buys):
             fig.add_trace(go.Scatter(
                 x=buys['date'], y=buys['指数'], mode='markers', name='强买',
