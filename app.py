@@ -354,7 +354,7 @@ sig_df = pd.read_csv(sig_path)
 sig_df['type']=np.where(sig_df['final_buy_signal']==True,'强买','强卖')
 sig_df.rename(columns={'clqn_prc':'指数'},inplace=True)
 
-sig_df=sig_df.drop(columns=['final_sell_signal','final_buy_signal'])
+sig_df=sig_df.drop(columns=['final_sell_signal','final_buy_signal','index'])
 
 #================================ 主图
 st.subheader('牛熊因子综合模型输出分数及指数对比')
