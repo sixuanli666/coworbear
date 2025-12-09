@@ -142,7 +142,7 @@ def find_signals(df: pd.DataFrame, score_col: str, index_col: str,
 
     out = df.loc[buys | sells, ['date', score_col, index_col]].copy()
     out['type'] = np.where(buys.loc[out.index], '强买', '强卖')
-    out.rename(columns={score_col: 'score', index_col: 'index_px'}, inplace=True)
+    out.rename(columns={score_col: 'score', index_col: '指数'}, inplace=True)
     return out
 
 
@@ -192,12 +192,12 @@ def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
         sells = signals[signals['type'] == '强卖']
         if len(buys):
             fig.add_trace(go.Scatter(
-                x=buys['date'], y=buys['index_px'], mode='markers', name='强买',
+                x=buys['date'], y=buys['指数'], mode='markers', name='强买',
                 marker=dict(symbol='triangle-up', size=10), yaxis='y2'
             ))
         if len(sells):
             fig.add_trace(go.Scatter(
-                x=sells['date'], y=sells['index_px'], mode='markers', name='强卖',
+                x=sells['date'], y=sells['指数'], mode='markers', name='强卖',
                 marker=dict(symbol='triangle-down', size=10), yaxis='y2'
             ))
 
@@ -343,10 +343,16 @@ _df[score_col] = _df[score_col].map(to_num)
 
 # 计算统计量与信号
 mu, sigma = zstats(_df[score_col])
-if use_quadrant:
-    sig_df = find_signals(_df, score_col, index_col, mu, sigma, k=sigma_k, slope_win=28, slope_th=0.0)
-else:
-    sig_df = pd.DataFrame(columns=['date', 'score', 'index_px', 'type'])
+# if use_quadrant:
+#     sig_df = find_signals(_df, score_col, index_col, mu, sigma, k=sigma_k, slope_win=28, slope_th=0.0)
+# else:
+#     sig_df = pd.DataFrame(columns=['date', 'score', 'index_px', 'type'])
+sig_path = get_path("signal_result")
+sig_df = pd.read_csv(sig_path)
+sig_df['type']=np.where(sig_df['final_buy_signal']==True,'强买','强卖')
+sig_df.rename(columns={'clqn_prc':'指数'},inplace=True)
+
+sig_df=sig_df.drop(columns=['final_sell_signal','final_buy_signal'])
 
 #================================ 主图
 st.subheader('牛熊因子综合模型输出分数及指数对比')
@@ -387,7 +393,7 @@ st.subheader('强买强卖信号集合')
 st.caption('强买强卖信号开发逻辑主要是通过网格搜索参数（未来16周分数斜率计算窗口、斜率阈值、均值下方买入区域大小、均值上方卖出区域大小），结合全量数据买卖次数分别不低于8次，目标买卖胜率分别不低于80%条件，选择最佳前述网格参数，并生成相应强买强卖信号。')
 
 if not sig_df.empty:
-    st.dataframe(sig_df.tail(12).iloc[::-1].reset_index(drop=True))
+    st.dataframe(sig_df.iloc[::-1].reset_index(drop=True))
 else:
     st.info('暂无信号。')
 
