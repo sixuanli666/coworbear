@@ -384,6 +384,8 @@ with st.expander('导出数据'):
 
 # 最近信号表
 st.subheader('强买强卖信号集合')
+st.caption('强买强卖信号开发逻辑主要是通过网格搜索参数（未来16周分数斜率计算窗口、斜率阈值、均值下方买入区域大小、均值上方卖出区域大小），结合全量数据买卖次数分别不低于8次，目标买卖胜率分别不低于80%条件，选择最佳前述网格参数，并生成相应强买强卖信号。')
+
 if not sig_df.empty:
     st.dataframe(sig_df.tail(12).iloc[::-1].reset_index(drop=True))
 else:
