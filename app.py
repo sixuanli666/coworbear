@@ -300,13 +300,13 @@ if not index_candidates:
 # 分数候选列
 score_candidates = [c for c in _df.columns if c.startswith('score_') or c.startswith('scoreh') or c.startswith('sum_score')]
 if not score_candidates:
-    # 回退：尝试挑选 f41..f411 做“分数”（虽然不是你滚动回归的总分）
+    # 回退：尝试挑选 f41..f411 做“分数”（虽然不是滚动回归的总分）
     score_candidates = [c for c in _df.columns if c.startswith('f4')]
 
 # 侧边栏参数
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
-    score_col = st.selectbox('分数列', score_candidates, index=0 if score_candidates else None, key='main_score')
+    score_col = st.selectbox('分数列', score_candidates, index=15 if score_candidates else None, key='main_score')
     index_col = st.selectbox('指数列', index_candidates, index=0 if index_candidates else None, key='main_index')
     start_date = st.date_input('起始日期（可选）', value=None, key='main_start')  # 若报错，可改成 text_input
     sigma_k = st.number_input('强弱带宽 K（σ倍数）', min_value=0.1, max_value=3.0, value=1.0, step=0.1, key='main_k')
