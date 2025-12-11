@@ -306,7 +306,7 @@ if not score_candidates:
 # 侧边栏参数
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
-    score_col = st.selectbox('分数列', score_candidates, index=15 if score_candidates else None, key='main_score')
+    score_col = st.selectbox('分数列', score_candidates, index=16 if score_candidates else None, key='main_score')
     index_col = st.selectbox('指数列', index_candidates, index=0 if index_candidates else None, key='main_index')
     start_date = st.date_input('起始日期（可选）', value=None, key='main_start')  # 若报错，可改成 text_input
     sigma_k = st.number_input('强弱带宽 K（σ倍数）', min_value=0.1, max_value=3.0, value=1.0, step=0.1, key='main_k')
