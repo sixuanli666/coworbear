@@ -324,7 +324,7 @@ with st.sidebar:
                 return None
         return None
 
-    enable_shift = st.checkbox('将分数线向右平移（按周）', value=False, key='main_shift_enable')
+    enable_shift = st.checkbox('将分数线向右平移（按周）', value=True, key='main_shift_enable')
     if enable_shift:
         default_h = _infer_h_from_name(score_col) or 0
         shift_weeks = st.number_input(
