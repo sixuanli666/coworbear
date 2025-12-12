@@ -1342,6 +1342,12 @@ with col_right:
 
             st.plotly_chart(fig2, use_container_width=True)
 
+            st.download_button(
+                        "下载 CSV（行业拥挤度）",
+                        data=d.to_csv(index=False).encode("utf-8-sig"),
+                        file_name="2.2_图2_行业拥挤度.csv",
+                        mime="text/csv"
+                    )
 
 # 表3：行业热度榜
 st.markdown("**表3：行业热度榜（区间最后一周截面）**")
