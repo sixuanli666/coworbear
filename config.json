@@ -14,9 +14,10 @@
     "factor_decomp_all_h":"assets/因子回归分解_all_h.csv",
     "ic_result":"assets/因子回归加权_IC_summary.csv",
     "signal_result":"assets/strong_signals.csv",
-    "industry_daily_alls":"assets/industry_daily_alls.csv"
+    "industry_daily_all":"assets/industry_daily_all.csv"
   }
 }
+
 
 
 
