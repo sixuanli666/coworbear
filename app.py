@@ -1058,7 +1058,7 @@ def _parse_ymd(s: str):
 
 @st.cache_data(show_spinner=False)
 def load_industry_daily(path: str) -> pd.DataFrame:
-    df = get_path(path)
+    df = pd.read_csv(path)
 
     # 你的日期列叫 index（字符串/数字都可能），这里统一转 datetime
     if "index" not in df.columns:
@@ -1105,7 +1105,7 @@ def calc_industry_share_bar(df_ind: pd.DataFrame, start_str: str, end_str: str):
 
 
 industry_daily_path = get_path("industry_daily_alls")
-
+col_left, col_right = st.columns(2)
 with col_left:
     st.markdown("图1：行业成交额占比")
     st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
