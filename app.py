@@ -1208,26 +1208,129 @@ with col_left:
 
     except Exception as e:
         st.warning(f"图1生成失败：{type(e).__name__}: {e}")
-        
-# 图2：TMT拥挤度曲线
+
+# ====== 图2：行业拥挤度（可选行业/区间/MA） ======
+
+def available_industries_from_df(df_ind: pd.DataFrame):
+    # 从 *_pct 列提取行业名，排除 tmt_pct（它是组合项）和 index
+    pct_cols = [c for c in df_ind.columns if c.endswith("_pct")]
+    #pct_cols = [c for c in pct_cols if c not in ["tmt_pct"]]  # 可留可不留
+    inds = [c[:-4] for c in pct_cols]  # 去掉 _pct
+    return sorted(set(inds))
+
+def calc_multi_industry_lines(df_ind: pd.DataFrame,
+                              industries: list[str],
+                              start_str: str,
+                              end_str: str,
+                              win: int = 5):
+    s_dt = _parse_ymd(start_str)
+    e_dt = _parse_ymd(end_str)
+
+    d = df_ind.copy()
+    if s_dt is not None:
+        d = d[d["index"] >= s_dt]
+    if e_dt is not None:
+        d = d[d["index"] <= e_dt]
+    if d.empty:
+        return pd.DataFrame()
+
+    # 选出这些行业对应的 pct 列
+    pct_cols = []
+    for ind in industries:
+        c = f"{ind}_pct"
+        if c in d.columns:
+            pct_cols.append(c)
+
+    if not pct_cols:
+        raise ValueError("所选行业在 df_ind 中找不到对应的 *_pct 列")
+
+    out = d[["index"] + pct_cols].copy()
+
+    # 每条线分别做 MA
+    for c in pct_cols:
+        out[c] = pd.to_numeric(out[c], errors="coerce")
+        out[c + f"_MA{win}"] = out[c].rolling(win, min_periods=1).mean()
+
+    return out
+
+
+# --- 侧边栏参数：图2 ---
+with st.sidebar:
+    st.header("2.2 图2·行业拥挤度曲线参数")
+    # df_ind 如果还没加载，这里只先占位；后面加载完再填 options 也行
+    chart2_mode = st.radio("展示方式", ["组合(相加)", "逐行业"], index=0, key="chart2_mode")
+    ma_win = st.number_input("MA窗口(天)", min_value=1, max_value=60, value=5, step=1, key="chart2_ma")
+
+# --- 图2绘制 ---
 with col_right:
-    st.markdown("**图2：TMT拥挤度（MA5）**")
-    # 新增：展示本批统计区间
+    st.markdown("图2：行业拥挤度（多行业，不加总）")
     st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
 
-    try:
-        img2 = Image.open(img_path_tmt)
-        st.image(img2)
-        with open(img_path_tmt, "rb") as f:
-            st.download_button(
-                "下载图2 PNG",
-                data=f,
-                file_name="2.2_TMT拥挤度.png",
-                mime="image/png"
+    # ===== 1. 选择行业 & MA窗口 =====
+    all_inds = sorted({c[:-4] for c in df_ind.columns if c.endswith("_pct")})
+
+    default_inds = [x for x in ["电子", "通信", "传媒", "计算机"] if x in all_inds]
+    if not default_inds:
+        default_inds = all_inds[:3]
+
+    sel_inds = st.multiselect(
+        "选择行业（每个行业一条线）",
+        options=all_inds,
+        default=default_inds,
+        key="chart2_inds_no_sum"
+    )
+
+    ma_win = st.number_input(
+        "MA窗口",
+        min_value=1, max_value=60, value=5, step=1,
+        key="chart2_ma_no_sum"
+    )
+
+    if not sel_inds:
+        st.info("请至少选择一个行业")
+    else:
+        # ===== 2. 时间区间过滤 =====
+        d = df_ind.copy()
+        s_dt = _parse_ymd(crowd_start)
+        e_dt = _parse_ymd(crowd_end)
+
+        if s_dt is not None:
+            d = d[d["index"] >= s_dt]
+        if e_dt is not None:
+            d = d[d["index"] <= e_dt]
+
+        if d.empty:
+            st.info("该区间内无数据")
+        else:
+            # ===== 3. 画图：每个行业一条线（各自 MA） =====
+            fig2 = go.Figure()
+
+            for ind in sel_inds:
+                col = f"{ind}_pct"
+                if col not in d.columns:
+                    continue
+
+                y = pd.to_numeric(d[col], errors="coerce") * 100
+                y_ma = y.rolling(int(ma_win), min_periods=1).mean()
+
+                fig2.add_trace(go.Scatter(
+                    x=d["index"],
+                    y=y_ma,
+                    mode="lines",
+                    name=ind
+                ))
+
+            fig2.update_layout(
+                template="plotly_white",   # 和你截图风格一致
+                height=520,
+                margin=dict(l=40, r=20, t=40, b=40),
+                xaxis=dict(title="日期"),
+                yaxis=dict(title=f"成交额占比 MA{ma_win}（%）"),
+                legend=dict(orientation="h", x=0, y=1.12)
             )
-       
-    except Exception as e:
-        st.warning(f"无法加载图2: {e}")
+
+            st.plotly_chart(fig2, use_container_width=True)
+
 
 # 表3：行业热度榜
 st.markdown("**表3：行业热度榜（区间最后一周截面）**")
