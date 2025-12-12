@@ -1035,7 +1035,7 @@ st.subheader("2.2 行业拥挤度")
 
 # --- 侧边栏：2.2 时间区间参数 ---
 with st.sidebar:
-    st.header("2.2 行业拥挤度·参数")
+    st.header("2.2图1行业成交额占比·参数")
     crowd_start = st.text_input(
         "起始日(YYYYMMDD，可空)",
         value="",
@@ -1261,24 +1261,39 @@ with st.sidebar:
     chart2_mode = st.radio("展示方式", ["组合(相加)", "逐行业"], index=0, key="chart2_mode")
     #ma_win = st.number_input("MA窗口(天)", min_value=1, max_value=60, value=5, step=1, key="chart2_ma")
 
-# --- 图2绘制 ---
-with col_right:
-    st.markdown("图2：行业拥挤度（多行业，不加总）")
-    st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
-
-    # ===== 1. 选择行业 & MA窗口 =====
-    all_inds = sorted({c[:-4] for c in df_ind.columns if c.endswith("_pct")})
-
-    default_inds = [x for x in ["电子", "通信", "传媒", "计算机"] if x in all_inds]
-    if not default_inds:
-        default_inds = all_inds[:3]
-
+# --- 侧边栏：2.2 时间区间参数 ---
+# ===== 1. 选择行业 & MA窗口 =====
+all_inds = sorted({c[:-4] for c in df_ind.columns if c.endswith("_pct")})
+default_inds = [x for x in ["电子", "通信", "传媒", "计算机"] if x in all_inds]
+with st.sidebar:
+    st.header("2.2图2行业拥挤度曲线·参数")
+    crowd_start = st.text_input(
+        "起始日(YYYYMMDD，可空)",
+        value="",
+        key="crowd_start"
+    )
+    crowd_end = st.text_input(
+        "结束日(YYYYMMDD，可空)",
+        value="",
+        key="crowd_end"
+    )
     sel_inds = st.multiselect(
         "选择行业（每个行业一条线）",
         options=all_inds,
         default=default_inds,
         key="chart2_inds_no_sum"
     )
+
+
+
+
+# --- 图2绘制 ---
+with col_right:
+    st.markdown("图2：行业拥挤度（多行业，不加总）")
+    st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
+
+    if not default_inds:
+        default_inds = all_inds[:3]
 
     # ma_win = st.number_input(
     #     "MA窗口",
