@@ -1108,7 +1108,7 @@ def calc_industry_share_bar(df_ind: pd.DataFrame, start_str: str, end_str: str):
     return out, (s_dt, e_dt)
 
 
-industry_daily_path = get_path("industry_daily_alls")
+industry_daily_path = get_path("industry_daily_all")
 col_left, col_right = st.columns(2)
 
 
