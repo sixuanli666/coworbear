@@ -1311,11 +1311,12 @@ with col_right:
                     continue
 
                 y = pd.to_numeric(d[col], errors="coerce") * 100
-                y_ma = y.rolling(int(ma_win), min_periods=1).mean()
+                #y_ma = y.rolling(int(ma_win), min_periods=1).mean()
 
                 fig2.add_trace(go.Scatter(
                     x=d["index"],
-                    y=y_ma,
+                    # y=y_ma,
+                    y=,
                     mode="lines",
                     name=ind
                 ))
