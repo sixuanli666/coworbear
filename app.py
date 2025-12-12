@@ -1267,15 +1267,15 @@ all_inds = sorted({c[:-4] for c in df_ind.columns if c.endswith("_pct")})
 default_inds = [x for x in ["电子", "通信", "传媒", "计算机"] if x in all_inds]
 with st.sidebar:
     st.header("2.2图2行业拥挤度曲线·参数")
-    crowd_start = st.text_input(
+    crowd_start2 = st.text_input(
         "起始日(YYYYMMDD，可空)",
         value="",
-        key="crowd_start"
+        key="crowd_start2"
     )
-    crowd_end = st.text_input(
+    crowd_end2 = st.text_input(
         "结束日(YYYYMMDD，可空)",
         value="",
-        key="crowd_end"
+        key="crowd_end2"
     )
     sel_inds = st.multiselect(
         "选择行业（每个行业一条线）",
@@ -1290,7 +1290,7 @@ with st.sidebar:
 # --- 图2绘制 ---
 with col_right:
     st.markdown("图2：行业拥挤度（多行业，不加总）")
-    st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
+    st.caption(f"区间：{_fmt_range(crowd_start2, crowd_end2)}")
 
     if not default_inds:
         default_inds = all_inds[:3]
@@ -1306,8 +1306,8 @@ with col_right:
     else:
         # ===== 2. 时间区间过滤 =====
         d = df_ind.copy()
-        s_dt = _parse_ymd(crowd_start)
-        e_dt = _parse_ymd(crowd_end)
+        s_dt = _parse_ymd(crowd_start2)
+        e_dt = _parse_ymd(crowd_end2)
 
         if s_dt is not None:
             d = d[d["index"] >= s_dt]
