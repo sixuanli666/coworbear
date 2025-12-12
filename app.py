@@ -1319,7 +1319,7 @@ with col_right:
                 if col not in d.columns:
                     continue
 
-                y = pd.to_numeric(d[col], errors="coerce") * 100
+                y = pd.to_numeric(d[col], errors="coerce") 
                 #y_ma = y.rolling(int(ma_win), min_periods=1).mean()
 
                 fig2.add_trace(go.Scatter(
