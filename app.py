@@ -1326,7 +1326,8 @@ with col_right:
                 height=520,
                 margin=dict(l=40, r=20, t=40, b=40),
                 xaxis=dict(title="日期"),
-                yaxis=dict(title=f"成交额占比 MA{ma_win}（%）"),
+                #yaxis=dict(title=f"成交额占比 MA{ma_win}（%）"),
+                yaxis=dict(title=f"成交额占比（%）"),
                 legend=dict(orientation="h", x=0, y=1.12)
             )
 
