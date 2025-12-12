@@ -1027,17 +1027,7 @@ with st.expander("下载当前视图数据"):
 # ======================= 2.2 行业拥挤度（离线产出展示版，不卡内存） =======================
 import pandas as pd
 from PIL import Image
-
-industry_daily_path = get_path("industry_daily_alls")
-
-@st.cache_data(show_spinner=False)
-def load_industry_daily(path: str):
-    df = pd.read_csv(path)
-    df["date"] = pd.to_datetime(df["date"])
-    df["amt"] = pd.to_numeric(df["amt"], errors="coerce")
-    return df
-
-
+# @st.cache_data(show_spinner=False)
 
 # --- 侧边栏：2.2 时间区间参数 ---
 with st.sidebar:
@@ -1053,57 +1043,109 @@ with st.sidebar:
         key="crowd_end"
     )
 
-df_ind = load_industry_daily(industry_daily_path)
+import plotly.graph_objects as go
 
-if crowd_start:
-    df_ind = df_ind[df_ind["date"] >= pd.to_datetime(crowd_start)]
-if crowd_end:
-    df_ind = df_ind[df_ind["date"] <= pd.to_datetime(crowd_end)]
+def _parse_ymd(s: str):
+    s = (s or "").strip()
+    if not s:
+        return None
+    for fmt in ("%Y%m%d", "%Y-%m-%d"):
+        try:
+            return pd.to_datetime(s, format=fmt)
+        except Exception:
+            pass
+    return None
 
-if df_ind.empty:
-    st.warning("该时间区间内无行业成交数据")
-    st.stop()
+@st.cache_data(show_spinner=False)
+def load_industry_daily(path: str) -> pd.DataFrame:
+    df = get_path(path)
 
-grp = (
-    df_ind
-    .groupby("level1_industry_name", as_index=False)["amt"]
-    .sum()
-)
+    # 你的日期列叫 index（字符串/数字都可能），这里统一转 datetime
+    if "index" not in df.columns:
+        raise ValueError(f"industry_daily_all 缺少 index 列，实际列：{list(df.columns)[:10]}...")
+    df["index"] = pd.to_datetime(df["index"], errors="coerce")
+    df = df.dropna(subset=["index"]).sort_values("index").drop_duplicates("index", keep="last")
 
-total_amt = grp["amt"].sum()
-grp["pct"] = grp["amt"] / total_amt * 100
+    # 数值列统一转数值
+    for c in df.columns:
+        if c != "index":
+            df[c] = pd.to_numeric(df[c], errors="coerce")
 
-grp = grp.sort_values("pct", ascending=False)
+    return df
+
+def calc_industry_share_bar(df_ind: pd.DataFrame, start_str: str, end_str: str):
+    s_dt = _parse_ymd(start_str)
+    e_dt = _parse_ymd(end_str)
+
+    d = df_ind.copy()
+    if s_dt is not None:
+        d = d[d["index"] >= s_dt]
+    if e_dt is not None:
+        d = d[d["index"] <= e_dt]
+
+    if d.empty:
+        return pd.DataFrame(columns=["industry","amt_sum","share"]), None
+
+    # 选出所有行业的 *_amt 列（排除 total_amt / tmt_amt）
+    amt_cols = [c for c in d.columns if c.endswith("_amt") and c not in ["total_amt"]]
+    if not amt_cols:
+        raise ValueError("未找到任何 *_amt 行业列（已排除 total_amt")
+
+    total = float(d["total_amt"].sum()) if "total_amt" in d.columns else float(d[amt_cols].sum().sum())
+    if total == 0 or np.isnan(total):
+        total = 1.0
+
+    amt_sum = d[amt_cols].sum(axis=0).sort_values(ascending=False)   #按行加总
+    out = pd.DataFrame({
+        "industry": [c[:-4] for c in amt_sum.index],  # 去掉 _amt
+        "amt_sum": amt_sum.values,
+    })
+    out["share"] = out["amt_sum"] / total
+    return out, (s_dt, e_dt)
+
+
+industry_daily_path = get_path("industry_daily_alls")
 
 with col_left:
     st.markdown("图1：行业成交额占比")
     st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
 
-    fig_ind = px.bar(
-        grp,
-        x="level1_industry_name",
-        y="pct",
-        labels={
-            "level1_industry_name": "行业",
-            "pct": "成交额占比(%)"
-        },
-        title="各行业期间成交额占比"
-    )
+    try:
+        p = resolve_first_existing(industry_daily_path)
+        if p is None:
+            st.warning(f"找不到 industry_daily_alls 文件：{industry_daily_path}")
+        else:
+            df_ind = load_industry_daily(str(p))
+            bar_df, _range = calc_industry_share_bar(df_ind, crowd_start, crowd_end)
 
-    fig_ind.update_layout(
-        template="plotly_dark",
-        xaxis_tickangle=-45,
-        height=420
-    )
+            if bar_df.empty:
+                st.info("该区间内无数据。")
+            else:
+                fig1 = go.Figure()
+                fig1.add_trace(go.Bar(
+                    x=bar_df["industry"],
+                    y=bar_df["share"] * 100.0,
+                    name="成交额占比(%)"
+                ))
+                fig1.update_layout(
+                    template="plotly_dark",
+                    height=520,
+                    margin=dict(l=40, r=20, t=40, b=120),
+                    xaxis=dict(title="行业", tickangle=-60),
+                    yaxis=dict(title="成交额占比（%）")
+                )
+                st.plotly_chart(fig1, use_container_width=True)
 
-    st.plotly_chart(fig_ind, use_container_width=True)
+                with st.expander("下载图1数据"):
+                    st.download_button(
+                        "下载 CSV（行业区间成交额占比）",
+                        data=bar_df.to_csv(index=False).encode("utf-8-sig"),
+                        file_name="2.2_图1_行业成交额占比_区间汇总.csv",
+                        mime="text/csv"
+                    )
 
-    st.download_button(
-        "下载图1数据（CSV）",
-        data=grp.to_csv(index=False).encode("utf-8-sig"),
-        file_name="industry_amt_pct.csv",
-        mime="text/csv"
-    )
+    except Exception as e:
+        st.warning(f"图1生成失败：{type(e).__name__}: {e}")
 
 
 def _fmt_range(start_str: str, end_str: str) -> str:
