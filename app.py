@@ -1254,12 +1254,6 @@ def calc_multi_industry_lines(df_ind: pd.DataFrame,
     return out
 
 
-# --- 侧边栏参数：图2 ---
-with st.sidebar:
-    st.header("2.2 图2·行业拥挤度曲线参数")
-    # df_ind 如果还没加载，这里只先占位；后面加载完再填 options 也行
-    chart2_mode = st.radio("展示方式", ["组合(相加)", "逐行业"], index=0, key="chart2_mode")
-    #ma_win = st.number_input("MA窗口(天)", min_value=1, max_value=60, value=5, step=1, key="chart2_ma")
 
 # --- 侧边栏：2.2 时间区间参数 ---
 # ===== 1. 选择行业 & MA窗口 =====
