@@ -1027,6 +1027,10 @@ with st.expander("下载当前视图数据"):
 # ======================= 2.2 行业拥挤度（离线产出展示版，不卡内存） =======================
 import pandas as pd
 from PIL import Image
+
+st.markdown("---")
+st.subheader("2.2 行业拥挤度")
+
 # @st.cache_data(show_spinner=False)
 
 # --- 侧边栏：2.2 时间区间参数 ---
@@ -1106,46 +1110,7 @@ def calc_industry_share_bar(df_ind: pd.DataFrame, start_str: str, end_str: str):
 
 industry_daily_path = get_path("industry_daily_alls")
 col_left, col_right = st.columns(2)
-with col_left:
-    st.markdown("图1：行业成交额占比")
-    st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
 
-    try:
-        p = resolve_first_existing(industry_daily_path)
-        if p is None:
-            st.warning(f"找不到 industry_daily_alls 文件：{industry_daily_path}")
-        else:
-            df_ind = load_industry_daily(str(p))
-            bar_df, _range = calc_industry_share_bar(df_ind, crowd_start, crowd_end)
-
-            if bar_df.empty:
-                st.info("该区间内无数据。")
-            else:
-                fig1 = go.Figure()
-                fig1.add_trace(go.Bar(
-                    x=bar_df["industry"],
-                    y=bar_df["share"] * 100.0,
-                    name="成交额占比(%)"
-                ))
-                fig1.update_layout(
-                    template="plotly_dark",
-                    height=520,
-                    margin=dict(l=40, r=20, t=40, b=120),
-                    xaxis=dict(title="行业", tickangle=-60),
-                    yaxis=dict(title="成交额占比（%）")
-                )
-                st.plotly_chart(fig1, use_container_width=True)
-
-                with st.expander("下载图1数据"):
-                    st.download_button(
-                        "下载 CSV（行业区间成交额占比）",
-                        data=bar_df.to_csv(index=False).encode("utf-8-sig"),
-                        file_name="2.2_图1_行业成交额占比_区间汇总.csv",
-                        mime="text/csv"
-                    )
-
-    except Exception as e:
-        st.warning(f"图1生成失败：{type(e).__name__}: {e}")
 
 
 def _fmt_range(start_str: str, end_str: str) -> str:
@@ -1190,7 +1155,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 线下输出产物路径（保持你原来的路径）
-img_path_industry = get_path("industry_img1")
+#img_path_industry = get_path("industry_img1")
 img_path_tmt = get_path("industry_img2")
 xlsx_path_table = get_path("industry_table_xlsx")
 
@@ -1199,22 +1164,45 @@ col_left, col_right = st.columns(2)
 # 图1：行业期间成交占比柱图
 with col_left:
     st.markdown("图1：行业成交额占比")
-    # 新增：展示本批统计区间
     st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
 
     try:
-        img1 = Image.open(img_path_industry)
-        st.image(img1)
-        with open(img_path_industry, "rb") as f:
-            st.download_button(
-                "下载图1 PNG",
-                data=f,
-                file_name="2.2_行业成交占比.png",
-                mime="image/png"
-            )
-    except Exception as e:
-        st.warning(f"无法加载图1: {e}")
+        p = resolve_first_existing(industry_daily_path)
+        if p is None:
+            st.warning(f"找不到 industry_daily_alls 文件：{industry_daily_path}")
+        else:
+            df_ind = load_industry_daily(str(p))
+            bar_df, _range = calc_industry_share_bar(df_ind, crowd_start, crowd_end)
 
+            if bar_df.empty:
+                st.info("该区间内无数据。")
+            else:
+                fig1 = go.Figure()
+                fig1.add_trace(go.Bar(
+                    x=bar_df["industry"],
+                    y=bar_df["share"] * 100.0,
+                    name="成交额占比(%)"
+                ))
+                fig1.update_layout(
+                    template="plotly_dark",
+                    height=520,
+                    margin=dict(l=40, r=20, t=40, b=120),
+                    xaxis=dict(title="行业", tickangle=-60),
+                    yaxis=dict(title="成交额占比（%）")
+                )
+                st.plotly_chart(fig1, use_container_width=True)
+
+                with st.expander("下载图1数据"):
+                    st.download_button(
+                        "下载 CSV（行业区间成交额占比）",
+                        data=bar_df.to_csv(index=False).encode("utf-8-sig"),
+                        file_name="2.2_图1_行业成交额占比_区间汇总.csv",
+                        mime="text/csv"
+                    )
+
+    except Exception as e:
+        st.warning(f"图1生成失败：{type(e).__name__}: {e}")
+        
 # 图2：TMT拥挤度曲线
 with col_right:
     st.markdown("**图2：TMT拥挤度（MA5）**")
