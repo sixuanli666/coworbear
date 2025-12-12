@@ -1316,7 +1316,7 @@ with col_right:
                 fig2.add_trace(go.Scatter(
                     x=d["index"],
                     # y=y_ma,
-                    y=,
+                    y=y,
                     mode="lines",
                     name=ind
                 ))
