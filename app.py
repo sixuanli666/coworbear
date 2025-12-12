@@ -1192,8 +1192,14 @@ with col_left:
                 )
                 st.plotly_chart(fig1, use_container_width=True)
 
-                with st.expander("下载图1数据"):
-                    st.download_button(
+                # with st.expander("下载图1数据"):
+                #     st.download_button(
+                #         "下载 CSV（行业区间成交额占比）",
+                #         data=bar_df.to_csv(index=False).encode("utf-8-sig"),
+                #         file_name="2.2_图1_行业成交额占比_区间汇总.csv",
+                #         mime="text/csv"
+                #     )
+                st.download_button(
                         "下载 CSV（行业区间成交额占比）",
                         data=bar_df.to_csv(index=False).encode("utf-8-sig"),
                         file_name="2.2_图1_行业成交额占比_区间汇总.csv",
@@ -1212,19 +1218,14 @@ with col_right:
     try:
         img2 = Image.open(img_path_tmt)
         st.image(img2)
-        # with open(img_path_tmt, "rb") as f:
-        #     st.download_button(
-        #         "下载图2 PNG",
-        #         data=f,
-        #         file_name="2.2_TMT拥挤度.png",
-        #         mime="image/png"
-        #     )
-        st.download_button(
+        with open(img_path_tmt, "rb") as f:
+            st.download_button(
                 "下载图2 PNG",
                 data=f,
                 file_name="2.2_TMT拥挤度.png",
                 mime="image/png"
             )
+       
     except Exception as e:
         st.warning(f"无法加载图2: {e}")
 
