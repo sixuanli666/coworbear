@@ -1212,8 +1212,14 @@ with col_right:
     try:
         img2 = Image.open(img_path_tmt)
         st.image(img2)
-        with open(img_path_tmt, "rb") as f:
-            st.download_button(
+        # with open(img_path_tmt, "rb") as f:
+        #     st.download_button(
+        #         "下载图2 PNG",
+        #         data=f,
+        #         file_name="2.2_TMT拥挤度.png",
+        #         mime="image/png"
+        #     )
+        st.download_button(
                 "下载图2 PNG",
                 data=f,
                 file_name="2.2_TMT拥挤度.png",
