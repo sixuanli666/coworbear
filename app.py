@@ -1259,7 +1259,7 @@ with st.sidebar:
     st.header("2.2 图2·行业拥挤度曲线参数")
     # df_ind 如果还没加载，这里只先占位；后面加载完再填 options 也行
     chart2_mode = st.radio("展示方式", ["组合(相加)", "逐行业"], index=0, key="chart2_mode")
-    ma_win = st.number_input("MA窗口(天)", min_value=1, max_value=60, value=5, step=1, key="chart2_ma")
+    #ma_win = st.number_input("MA窗口(天)", min_value=1, max_value=60, value=5, step=1, key="chart2_ma")
 
 # --- 图2绘制 ---
 with col_right:
@@ -1280,11 +1280,11 @@ with col_right:
         key="chart2_inds_no_sum"
     )
 
-    ma_win = st.number_input(
-        "MA窗口",
-        min_value=1, max_value=60, value=5, step=1,
-        key="chart2_ma_no_sum"
-    )
+    # ma_win = st.number_input(
+    #     "MA窗口",
+    #     min_value=1, max_value=60, value=5, step=1,
+    #     key="chart2_ma_no_sum"
+    # )
 
     if not sel_inds:
         st.info("请至少选择一个行业")
