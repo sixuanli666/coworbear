@@ -1200,7 +1200,7 @@ with col_left:
                 #         mime="text/csv"
                 #     )
                 st.download_button(
-                        "下载 CSV（行业区间成交额占比）",
+                        "下载 CSV（行业时间区间内成交额占比）",
                         data=bar_df.to_csv(index=False).encode("utf-8-sig"),
                         file_name="2.2_图1_行业成交额占比_区间汇总.csv",
                         mime="text/csv"
@@ -1345,7 +1345,7 @@ with col_right:
             st.download_button(
                         "下载 CSV（行业拥挤度）",
                         data=d.to_csv(index=False).encode("utf-8-sig"),
-                        file_name="2.2_图2_行业拥挤度.csv",
+                        file_name="2.2_图2_行业时间区间内拥挤度.csv",
                         mime="text/csv"
                     )
 
