@@ -1368,8 +1368,8 @@ df_industry = load_industry_data(industry_data_path)
 # 侧边栏：时间区间选择
 with st.sidebar:
     st.header("表3：行业热度榜（最近一周）")
-    crowd_start3 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="crowd_start")
-    crowd_end3 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="crowd_end")
+    crowd_start3 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="crowd_start3")
+    crowd_end3 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="crowd_end3")
 
 # 计算行业热度榜（成交额占比、分位数、换手率）
 def calc_industry_heat(df, start_date, end_date):
