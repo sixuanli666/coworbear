@@ -1380,8 +1380,7 @@ def calc_industry_heat(df, start_date, end_date):
         df = df[df['week'] <= pd.to_datetime(end_date, format="%Y%m%d")]
 
     df['amt_pct_rank'] = df.groupby('industry')['amt_pct'].rank(pct=True)
-    df['tovr_pct_rank'] = (df.groupby('industry')['industry_avg_turnover']
-            .rank(pct=True) * 100
+    df['tovr_pct_rank'] = df.groupby('industry')['industry_avg_turnover'].rank(pct=True) * 100
     latest_week = df['week'].max()
     df_latest = df[df['week'] == latest_week].copy()
 
