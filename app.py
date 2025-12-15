@@ -1350,22 +1350,58 @@ with col_right:
                     )
 
 # 表3：行业热度榜
-st.markdown("**表3：行业热度榜（区间最后一周截面）**")
-# 新增：展示本批统计区间
-st.caption(f"区间：{_fmt_range(crowd_start, crowd_end)}")
+import pandas as pd
+import streamlit as st
 
-try:
-    df_table = pd.read_excel(xlsx_path_table)
-    st.dataframe(df_table)
+# 假设这个是数据路径
+industry_data_path = get_path("industry_weekly_all")
 
-    st.download_button(
-        "下载行业周度概览 (Excel)",
-        data=open(xlsx_path_table, "rb"),
-        file_name="2.2_行业热度榜.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-except Exception as e:
-    st.warning(f"无法读取表3: {e}")
+def load_industry_data(path):
+    """读取并加载行业数据"""
+    df = pd.read_csv(path)
+    df['week'] = pd.to_datetime(df['week'], errors='coerce')
+    return df.dropna(subset=['week'])
+
+# 加载数据
+df_industry = load_industry_data(industry_data_path)
+
+# 侧边栏：时间区间选择
+with st.sidebar:
+    st.header("表3：行业热度榜（最近一周）")
+    crowd_start3 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="crowd_start")
+    crowd_end3 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="crowd_end")
+
+# 计算行业热度榜（成交额占比、分位数、换手率）
+def calc_industry_heat(df, start_date, end_date):
+    # 筛选数据
+    if start_date:
+        df = df[df['week'] >= pd.to_datetime(start_date, format="%Y%m%d")]
+    if end_date:
+        df = df[df['week'] <= pd.to_datetime(end_date, format="%Y%m%d")]
+
+    df['amt_pct_rank'] = df.groupby('industry')['amt_pct'].rank(pct=True)
+    df['tovr_pct_rank'] = (df.groupby('industry')['industry_avg_turnover']
+            .rank(pct=True) * 100
+    latest_week = df['week'].max()
+    df_latest = df[df['week'] == latest_week].copy()
+
+    return df_latest
+
+# 获取行业热度榜数据
+industry_heat_df = calc_industry_heat(df_industry, crowd_start3, crowd_end3)
+
+# 显示行业热度榜
+st.subheader("行业热度榜")
+st.dataframe(industry_heat_df)
+
+# 导出数据按钮
+st.download_button(
+    "下载行业热度榜 (Excel)",
+    data=industry_heat_df.to_csv(index=False).encode("utf-8-sig"),
+    file_name="industry_heat_table.csv",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
 
 # ======================= 3.1 换手率横截面标准差（全A + 行业）·合并对比版 =======================
 # 说明：
