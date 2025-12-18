@@ -372,9 +372,9 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 # 下载主图（PNG）
-with st.expander('导出数据'):
-    # st.write('若下载 PNG 失败，请先 `pip install -U kaleido`。')
-    colA, colB, colC = st.columns(3)
+# with st.expander('导出数据'):
+#     # st.write('若下载 PNG 失败，请先 `pip install -U kaleido`。')
+colA, colB, colC = st.columns(3)
     with colA:
         if st.button('下载主图 PNG'):
             try:
@@ -390,6 +390,7 @@ with st.expander('导出数据'):
         st.download_button('下载详细分数表 CSV', data=_df.to_csv(index=False).encode('utf-8-sig'),
                            file_name='filtered_data.csv', mime='text/csv')
 
+    
 # 最近信号表
 st.subheader('强买强卖信号集合')
 st.caption('强买强卖信号开发逻辑主要是通过网格搜索参数（未来16周分数斜率计算窗口、斜率阈值、均值下方买入区域大小、均值上方卖出区域大小），结合全量数据买卖次数分别不低于8次，目标买卖胜率分别不低于80%条件，选择最佳前述网格参数，并生成相应强买强卖信号。')
@@ -517,14 +518,14 @@ fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
 st.plotly_chart(fig, use_container_width=True)
 
 # 导出功能
-with st.expander('导出数据'):
-    st.download_button(
+# with st.expander('导出数据'):
+st.download_button(
         '下载数据',
         data=df.to_csv(index=False).encode('utf-8-sig'),
         file_name=f'factor_contributions_{period_label}weeks.csv',
         mime='text/csv'
     )
-
+   
 
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
