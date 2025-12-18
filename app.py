@@ -1030,7 +1030,7 @@ st.download_button("下载CSV", data=plot_df.reset_index().to_csv(index=False).e
 import pandas as pd
 from PIL import Image
 
-st.markdown("---")
+# st.markdown("---")
 #st.subheader("2.2 行业拥挤度")
 
 # @st.cache_data(show_spinner=False)
