@@ -1022,8 +1022,8 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-with st.expander("下载当前视图数据"):
-    st.download_button("下载CSV", data=plot_df.reset_index().to_csv(index=False).encode("utf-8-sig"),
+# with st.expander("下载当前视图数据"):
+st.download_button("下载CSV", data=plot_df.reset_index().to_csv(index=False).encode("utf-8-sig"),
                        file_name=f"大小盘_{freq}_{'收益' if view=='收益' else '净值'}.csv", mime="text/csv")
 
 # ======================= 2.2 行业拥挤度=======================
