@@ -375,20 +375,21 @@ st.plotly_chart(fig, use_container_width=True)
 # with st.expander('导出数据'):
 #     # st.write('若下载 PNG 失败，请先 `pip install -U kaleido`。')
 colA, colB, colC = st.columns(3)
-    with colA:
-        if st.button('下载主图 PNG'):
-            try:
-                import kaleido  # noqa: F401
-                png_bytes = fig.to_image(format='png', scale=2)
-                st.download_button('点击保存 PNG', data=png_bytes, file_name='score_vs_index.png', mime='image/png')
-            except Exception as e:
-                st.warning(f'导出失败：{e}')
-    with colB:
-        st.download_button('下载强买强卖信号 CSV', data=sig_df.to_csv(index=False).encode('utf-8-sig'),
+with colA:
+    if st.button('下载主图 PNG'):
+        try:
+            import kaleido  # noqa: F401
+            png_bytes = fig.to_image(format='png', scale=2)
+            st.download_button('点击保存 PNG', data=png_bytes, file_name='score_vs_index.png', mime='image/png')
+        except Exception as e:
+            st.warning(f'导出失败：{e}')
+with colB:
+    st.download_button('下载强买强卖信号 CSV', data=sig_df.to_csv(index=False).encode('utf-8-sig'),
                            file_name='signals.csv', mime='text/csv')
-    with colC:
-        st.download_button('下载详细分数表 CSV', data=_df.to_csv(index=False).encode('utf-8-sig'),
+with colC:
+    st.download_button('下载详细分数表 CSV', data=_df.to_csv(index=False).encode('utf-8-sig'),
                            file_name='filtered_data.csv', mime='text/csv')
+    
 
     
 # 最近信号表
