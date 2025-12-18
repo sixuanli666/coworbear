@@ -863,10 +863,10 @@ if btn_ep:
                           yaxis=dict(title="E/P − 10Y（小数）"))
         st.plotly_chart(fig, use_container_width=True)
 
-        with st.expander("下载当前视图数据"):
-            out_df = epdf.copy()
-            out_df["weighted_ep_10bond_clean"] = s.values
-            st.download_button("下载CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
+        # with st.expander("下载当前视图数据"):
+        out_df = epdf.copy()
+        out_df["weighted_ep_10bond_clean"] = s.values
+        st.download_button("下载CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
                                file_name="ep_minus_10y_clean.csv", mime="text/csv")
 
     except Exception as e:
