@@ -399,10 +399,10 @@ if not score_candidates:
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
     score_col = st.selectbox('分数列', score_candidates, index=16 if score_candidates else None, key='main_score')
-    index_col = st.selectbox('指数列', index_candidates, index=0 if index_candidates else None, key='main_index')
-    start_date = st.date_input('起始日期（可选）', value=None, key='main_start')  # 若报错，可改成 text_input
-    sigma_k = st.number_input('强弱带宽 K（σ倍数）', min_value=0.1, max_value=3.0, value=1.0, step=0.1, key='main_k')
-    show_bands = st.checkbox('显示均值与 ±σ 带', value=True, key='main_bands')
+    # index_col = st.selectbox('指数列', index_candidates, index=0 if index_candidates else None, key='main_index')
+    # start_date = st.date_input('起始日期（可选）', value=None, key='main_start')  # 若报错，可改成 text_input
+    # sigma_k = st.number_input('强弱带宽 K（σ倍数）', min_value=0.1, max_value=3.0, value=1.0, step=0.1, key='main_k')
+    # show_bands = st.checkbox('显示均值与 ±σ 带', value=True, key='main_bands')
     use_quadrant = st.checkbox('启用强买强卖信号', value=True, key='main_quad')
 
     # === 新增：分数线右移（周） ===
