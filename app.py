@@ -431,11 +431,11 @@ with st.sidebar:
         shift_weeks = 0
 
 # 过滤起始日期
-if start_date:
-    _df = _df[_df['date'] >= pd.Timestamp(start_date)]
+# if start_date:
+#     _df = _df[_df['date'] >= pd.Timestamp(start_date)]
 
 # 数值转换
-_df[index_col] = _df[index_col].map(to_num)
+# _df[index_col] = _df[index_col].map(to_num)
 _df[score_col] = _df[score_col].map(to_num)
 
 # 计算统计量与信号
