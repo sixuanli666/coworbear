@@ -576,9 +576,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     return fig
 
 
-# 侧边栏：数据输入
-with st.sidebar:
-    st.header('因子贡献堆叠图参数')
+
     
 df = read_csv_default("factor_decomp_all_h", parse_dates=["date"])
 
@@ -711,12 +709,12 @@ st.subheader("1.1 300指数股息率 / 十年国债")
 st.caption(
     '300指数（剔除了金融股）的股息率与十年期国债收益率的比较。股息率是指股票的年度股息除以股价，而十年期国债收益率则是债券投资的回报率。图中展示了这两者的变化趋势。蓝色虚线表示平均值，+1倍和-1倍标准差，图示了股息率与国债收益率的相对收益率情况。(已增加上证综指)')
 
-with st.sidebar:
-    st.header("1.1 300指数股息率 / 十年国债·参数")
+# with st.sidebar:
+#     st.header("1.1 300指数股息率 / 十年国债·参数")
     
-    div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
-    div_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
-    show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
+#     div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
+#     div_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
+#     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
 
 
 
@@ -793,12 +791,13 @@ if btn_csv_11:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df["trade_date"], y=df["ratio"],
                                  mode="lines", name="300股息率/十年国债", yaxis="y1"))
-        if show_bands_11 and len(s):
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu] * len(df),
+      
+          
+        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu] * len(df),
                                      mode="lines", name="均值", line=dict(dash="dot"), yaxis="y1"))
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu + sd] * len(df),
+        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu + sd] * len(df),
                                      mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu - sd] * len(df),
+        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu - sd] * len(df),
                                      mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
 
         fig.add_trace(go.Scatter(x=df["trade_date"], y=df["sh_close"],
