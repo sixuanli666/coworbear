@@ -158,72 +158,115 @@ def find_signals(df: pd.DataFrame, score_col: str, index_col: str,
     return out
 
 
-def make_main_figure(df: pd.DataFrame, score_col: str, index_col: str,
-                     show_bands: bool, mu: float, sigma: float, k: float,
-                     signals: pd.DataFrame, shift_weeks: int = 0):
+def make_main_figure(
+    df: pd.DataFrame,
+    score_col: str,
+    signals: pd.DataFrame = None,
+    shift_weeks: int = 0,
+):
+    """
+    简化版主图（写死指数列 clqn_prc）：
+    - 不需要 index_col / start_date / sigma_k / show_bands 参数
+    - 默认显示：均值、±1σ（分数轴）
+    - 指数轴固定用 clqn_prc
+    - 分数线可右移 shift_weeks 周
+    """
+
+    d = df.copy()
+
+    # ---- 必要列校验 ----
+    if "date" not in d.columns:
+        st.error("df 缺少 date 列")
+        st.stop()
+    if score_col not in d.columns:
+        st.error(f"df 缺少分数列：{score_col}")
+        st.stop()
+    if "clqn_prc" not in d.columns:
+        st.error("df 缺少指数列：clqn_prc（已写死）")
+        st.stop()
+
+    # ---- 类型规范 ----
+    d["date"] = pd.to_datetime(d["date"], errors="coerce")
+    d = d.dropna(subset=["date"]).sort_values("date")
+
+    d[score_col] = pd.to_numeric(d[score_col], errors="coerce")
+    d["clqn_prc"] = pd.to_numeric(d["clqn_prc"], errors="coerce")
+
+    # ---- 均值 & 标准差（默认±1σ）----
+    s = d[score_col].replace([np.inf, -np.inf], np.nan).dropna()
+    mu = float(s.mean()) if len(s) else 0.0
+    sigma = float(s.std(ddof=1)) if len(s) else 1.0
+    if sigma == 0 or np.isnan(sigma):
+        sigma = 1.0
+
     fig = go.Figure()
 
-    # === 分数线的 x 轴可以右移 ===
+    # 分数线 x 轴右移
     if shift_weeks and shift_weeks != 0:
-        # 1 周按 7 天算
-        score_x = df['date'] + pd.to_timedelta(shift_weeks * 7, unit='D')
+        score_x = d["date"] + pd.to_timedelta(int(shift_weeks) * 7, unit="D")
     else:
-        score_x = df['date']
+        score_x = d["date"]
 
-    # 分数（左轴）——这里要用 score_x，而不是 df['date']！
+    # 分数（左轴）
     fig.add_trace(go.Scatter(
-        x=score_x, y=df[score_col], mode='lines', name=score_col,
-        yaxis='y1'
+        x=score_x, y=d[score_col], mode="lines", name=score_col, yaxis="y1"
     ))
 
-    # 指数（右轴）——不平移
+    # 指数（右轴）固定 clqn_prc
     fig.add_trace(go.Scatter(
-        x=df['date'], y=df[index_col], mode='lines', name=index_col,
-        yaxis='y2'
+        x=d["date"], y=d["clqn_prc"], mode="lines", name="clqn_prc", yaxis="y2"
     ))
 
-    # 均值与带 —— 仍然用原始日期
-    if show_bands:
-        fig.add_trace(go.Scatter(
-            x=df['date'], y=[mu] * len(df), mode='lines', name='均值',
-            line=dict(dash='dot'), yaxis='y1'
-        ))
-        fig.add_trace(go.Scatter(
-            x=df['date'], y=[mu + k * sigma] * len(df), mode='lines', name=f'+{k}σ',
-            line=dict(dash='dash'), yaxis='y1'
-        ))
-        fig.add_trace(go.Scatter(
-            x=df['date'], y=[mu - 1.0 * sigma] * len(df), mode='lines', name='-1σ',
-            line=dict(dash='dash'), yaxis='y1'
-        ))
+    # 默认显示：均值、±1σ（用原始日期，不跟随平移）
+    fig.add_trace(go.Scatter(
+        x=d["date"], y=[mu] * len(d), mode="lines", name="均值",
+        line=dict(dash="dot"), yaxis="y1"
+    ))
+    fig.add_trace(go.Scatter(
+        x=d["date"], y=[mu + sigma] * len(d), mode="lines", name="+1σ",
+        line=dict(dash="dash"), yaxis="y1"
+    ))
+    fig.add_trace(go.Scatter(
+        x=d["date"], y=[mu - sigma] * len(d), mode="lines", name="-1σ",
+        line=dict(dash="dash"), yaxis="y1"
+    ))
 
-    # 信号点画在指数轴上（不平移）
-    if not signals.empty:
-        buys = signals[signals['type'] == '强买']
-        sells = signals[signals['type'] == '强卖']
-        print(buys.head())
+    # 信号点（画在指数轴上）
+    if signals is not None and not signals.empty:
+        sig = signals.copy()
+        sig["date"] = pd.to_datetime(sig["date"], errors="coerce")
+        sig = sig.dropna(subset=["date"])
 
-        if len(buys):
-            fig.add_trace(go.Scatter(
-                x=buys['date'], y=buys['指数'], mode='markers', name='强买',
-                marker=dict(symbol='triangle-up', size=10), yaxis='y2'
-            ))
-        if len(sells):
-            fig.add_trace(go.Scatter(
-                x=sells['date'], y=sells['指数'], mode='markers', name='强卖',
-                marker=dict(symbol='triangle-down', size=10), yaxis='y2'
-            ))
+        # 你现在 signals 里已经 rename 过 clqn_prc -> 指数
+        if "指数" not in sig.columns and "clqn_prc" in sig.columns:
+            sig.rename(columns={"clqn_prc": "指数"}, inplace=True)
+
+        if ("type" in sig.columns) and ("指数" in sig.columns):
+            buys = sig[sig["type"] == "强买"]
+            sells = sig[sig["type"] == "强卖"]
+
+            if len(buys):
+                fig.add_trace(go.Scatter(
+                    x=buys["date"], y=buys["指数"], mode="markers", name="强买",
+                    marker=dict(symbol="triangle-up", size=10), yaxis="y2"
+                ))
+            if len(sells):
+                fig.add_trace(go.Scatter(
+                    x=sells["date"], y=sells["指数"], mode="markers", name="强卖",
+                    marker=dict(symbol="triangle-down", size=10), yaxis="y2"
+                ))
 
     fig.update_layout(
-        template='plotly_dark',
+        template="plotly_dark",
         margin=dict(l=60, r=70, t=40, b=40),
-        legend=dict(orientation='h', x=0, y=1.12),
-        xaxis=dict(title='日期'),
-        yaxis=dict(title=score_col, side='left'),
-        yaxis2=dict(title=index_col, side='right', overlaying='y'),
+        legend=dict(orientation="h", x=0, y=1.12),
+        xaxis=dict(title="日期"),
+        yaxis=dict(title=score_col, side="left"),
+        yaxis2=dict(title="clqn_prc", side="right", overlaying="y"),
         height=560,
     )
     return fig
+
 
 
 from pathlib import Path
@@ -455,12 +498,8 @@ sig_df = sig_df.drop(columns=['final_sell_signal', 'final_buy_signal', 'index'])
 st.subheader('牛熊因子综合模型输出分数及指数对比')
 st.caption(
     '下图展示了牛熊因子模型输出的总分在历史中与指数走势的对比，可以根据IC大小选择不同未来周收益率模型输出分数，一般IC越大模型预测效果越好，此外可以向右平移分数线查看当前预测指数走势，例如若选择预测未来16周指数收益率模型，可向右平移分数线16周，查看当前分数走势')
-fig = make_main_figure(
-    _df, score_col, index_col,
-    show_bands, mu, sigma, sigma_k,
-    sig_df,
-    shift_weeks=int(shift_weeks)  # 来自侧边栏
-)
+fig = make_main_figure(_df, score_col, signals=sig_df, shift_weeks=int(shift_weeks))
+
 
 st.plotly_chart(fig, use_container_width=True)
 
