@@ -984,10 +984,12 @@ def _mean_std(s: pd.Series):
     return float(s2.mean()), float(s2.std(ddof=1)) or 1.0
 
 
-# 读取基础数据
-daily_df = read_csv_default("rot_daily_csv")
-month_df = read_csv_default("rot_month_csv")
-quarter_df = read_csv_default("rot_quarter_csv")
+
+# 读取基础数据（一定要用 _load_df 做索引列清洗）
+daily_df   = _load_df(str(resolve_first_existing(get_path("rot_daily_csv"))),   idx_name="date")
+month_df   = _load_df(str(resolve_first_existing(get_path("rot_month_csv"))),   idx_name="month")
+quarter_df = _load_df(str(resolve_first_existing(get_path("rot_quarter_csv"))), idx_name="quarter")
+
 
 
 # 确定可选组合
