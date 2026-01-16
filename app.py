@@ -917,9 +917,6 @@ st.caption(
 # 侧边栏参数
 with st.sidebar:
     st.header("2.1 大小盘轮动·参数")
-    st.caption(f"日度：{get_path('rot_daily_csv')}")
-    st.caption(f"月度：{get_path('rot_month_csv')}")
-    st.caption(f"季度：{get_path('rot_quarter_csv')}")
     freq = st.radio("频率", ["日度", "月度", "季度"], index=1, key="rot_freq")
     view = st.radio("指标", ["收益", "净值(NAV)"], index=0, key="rot_view")
     k_sigma = st.number_input("±σ 带宽（σ倍数，仅收益视图有效）", 0.1, 3.0, 1.0, 0.1, key="rot_k")
