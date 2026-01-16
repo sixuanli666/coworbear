@@ -356,9 +356,7 @@ if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
 
 
 
-# 侧边栏：数据输入
-with st.sidebar:
-    st.header('最终总分判断牛熊及买卖点·参数')
+
     
 
 # 固定读取默认 merged_csv
