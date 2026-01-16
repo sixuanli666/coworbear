@@ -252,6 +252,40 @@ def resolve_first_existing(p: str) -> Union[Path, None]:
             pass
     return None
 
+@st.cache_data(show_spinner=False)
+def read_csv_default(key: str, *, required_cols=None, parse_dates=None) -> pd.DataFrame:
+    """
+    只从 config.json 的 paths[key] 读取 CSV，不允许上传/手输路径。
+    - required_cols: 必须存在的列名列表
+    - parse_dates: 需要 pd.to_datetime 的列名列表
+    """
+    raw = get_path(key)
+    p = resolve_first_existing(raw)
+    if p is None:
+        st.error(f"找不到默认文件：paths['{key}'] = {raw}\n工作目录：{os.getcwd()}\n脚本目录：{APP_DIR}")
+        st.stop()
+
+    try:
+        df = pd.read_csv(p)
+    except UnicodeDecodeError:
+        df = pd.read_csv(p, encoding="utf-8-sig")
+    except Exception:
+        df = pd.read_csv(p, engine="python")
+
+    if required_cols:
+        miss = [c for c in required_cols if c not in df.columns]
+        if miss:
+            st.error(f"{key} 缺少必要列：{miss}\n实际列：{list(df.columns)[:50]}")
+            st.stop()
+
+    if parse_dates:
+        for c in parse_dates:
+            if c in df.columns:
+                df[c] = pd.to_datetime(df[c], errors="coerce")
+
+    return df
+
+
 
 # ========== Streamlit UI ==========
 # ================展示模型IC
@@ -325,24 +359,13 @@ if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
 # 侧边栏：数据输入
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
-    default_path = get_path("merged_csv")
-    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。')
-    uploaded = None
-    if not use_default:
-        uploaded = st.file_uploader('上传 CSV（含 date 与 clqn_prc / score_*）', type=['csv'])
+    st.caption(f"数据源：{get_path('merged_csv')}")
 
-# 读取数据
-try:
-    if use_default:
-        df0 = pd.read_csv(default_path)
-    else:
-        if uploaded is None:
-            st.info('请在侧边栏上传 CSV，或启用“使用默认路径”。')
-            st.stop()
-        df0 = pd.read_csv(uploaded)
-except Exception as e:
-    st.error(f'读取 CSV 失败：{e}')
-    st.stop()
+# 固定读取默认 merged_csv
+df0 = read_csv_default("merged_csv")
+
+
+
 
 # 规范化列
 _df = df0.copy()
@@ -519,26 +542,10 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
 # 侧边栏：数据输入
 with st.sidebar:
     st.header('因子贡献堆叠图参数')
-    default_path = get_path("factor_decomp_all_h")
-    use_default = st.toggle('使用默认路径', value=True, help='使用你本地导出的合并 CSV。取消后可在下方上传文件。',
-                            key='use_default_toggle')
-    uploaded = None
-    if not use_default:
-        uploaded = st.file_uploader('上传 CSV（含 date 与因子贡献列）', type=['csv'])
+    st.caption(f"数据源：{get_path('factor_decomp_all_h')}")
 
-# 读取数据
-try:
-    if use_default:
-        df = pd.read_csv(default_path)
+df = read_csv_default("factor_decomp_all_h", parse_dates=["date"])
 
-    else:
-        if uploaded is None:
-            st.info('请在侧边栏上传 CSV，或启用“使用默认路径”。')
-            st.stop()
-        df = pd.read_csv(uploaded)
-except Exception as e:
-    st.error(f'读取 CSV 失败：{e}')
-    st.stop()
 
 # 选择展示列
 # columns_to_plot = [
@@ -670,15 +677,11 @@ st.caption(
 
 with st.sidebar:
     st.header("1.1 300指数股息率 / 十年国债·参数")
-    div_csv_path = st.text_input(
-        "CSV路径",
-        value=get_path("div_result_csv"),  # 你原来的路径键
-        key="div_csv_path_fixed"
-    )
-    # div_uploaded = st.file_uploader("或上传CSV（留空则使用路径）", type=["csv"], key="div_csv_upload_fixed")
+    st.caption(f"数据源：{get_path('div_result_csv')}")
     div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
     div_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
+
 
 
 # # —— 1.1 读源诊断——
@@ -702,11 +705,12 @@ def _read_csv_smart(src):
 btn_csv_11 = st.button("生成图表", type="primary", key="div_btn_fixed")
 if btn_csv_11:
     try:
-        _p = resolve_first_existing(div_csv_path)
-        if _p is None:
-            st.error(f"路径无效：{div_csv_path}")
-            st.stop()
-        df = _read_csv_smart(_p)
+        df = read_csv_default(
+            "div_result_csv",
+            required_cols=["trade_date", "weighted_dividend_rate", "sh_close", "nation10_yield", "weighted_dividend_rate_div_nation10"],
+            parse_dates=["trade_date"]
+        )
+
 
         # 固定列名校验
         need = ["trade_date", "weighted_dividend_rate", "sh_close",
@@ -801,17 +805,12 @@ st.caption(
 # 侧边栏参数
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
-    ep_default = get_path("div_result_csv2")
-    ep_csv_path = st.text_input(
-        "E/P−10Y 结果CSV路径",
-        value=get_path("div_result_csv2"),
-        key="ep_path"
-    )
-
+    st.caption(f"数据源：{get_path('div_result_csv2')}")
     ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
     ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
     ep_clip = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
     ep_bands = st.checkbox("显示均值与±1σ", value=True, key="ep_bands")
+
 
 
 @st.cache_data(show_spinner=False)
@@ -833,22 +832,12 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
 if btn_ep:
     try:
-        ep_path_raw = st.session_state.get("ep_path", "")
-        ep_path = resolve_first_existing(ep_path_raw)
-        if ep_path is None:
-            st.error(f"路径无效：{ep_path_raw}\n"
-                     f"工作目录：{os.getcwd()}\n"
-                     f"建议：把文件放到以上工作目录下的 {ep_path_raw}，或点“恢复默认(1.2)”，"
-                     f"或手动在输入框里粘贴绝对路径。")
-            st.stop()
+        epdf = read_csv_default(
+            "div_result_csv2",
+            required_cols=["trade_date", "weighted_ep_10bond"],
+            parse_dates=["trade_date"]
+        )
 
-        # 真正读取（带一点容错编码）
-        try:
-            epdf = pd.read_csv(ep_path)
-        except UnicodeDecodeError:
-            epdf = pd.read_csv(ep_path, encoding="utf-8-sig")
-        except Exception:
-            epdf = pd.read_csv(ep_path, engine="python")
 
         # 列/类型规范化（避免后续筛选/作图出错）
         if "trade_date" not in epdf.columns:
@@ -928,17 +917,16 @@ st.caption(
 # 侧边栏参数
 with st.sidebar:
     st.header("2.1 大小盘轮动·参数")
-    # base_dir = st.text_input("CSV 目录", value=get_path("turn_std_png_dir"), key="rot_dir")
-    path_daily = st.text_input("日度CSV", value=get_path("rot_daily_csv"), key="rot_path_daily")
-    path_monthly = st.text_input("月度CSV", value=get_path("rot_month_csv"), key="rot_path_month")
-    path_quarter = st.text_input("季度CSV", value=get_path("rot_quarter_csv"), key="rot_path_quarter")
+    st.caption(f"日度：{get_path('rot_daily_csv')}")
+    st.caption(f"月度：{get_path('rot_month_csv')}")
+    st.caption(f"季度：{get_path('rot_quarter_csv')}")
     freq = st.radio("频率", ["日度", "月度", "季度"], index=1, key="rot_freq")
     view = st.radio("指标", ["收益", "净值(NAV)"], index=0, key="rot_view")
-    k_sigma = st.number_input("±σ 带宽（σ倍数，仅收益视图有效）", min_value=0.1, max_value=3.0, value=1.0, step=0.1,
-                              key="rot_k")
+    k_sigma = st.number_input("±σ 带宽（σ倍数，仅收益视图有效）", 0.1, 3.0, 1.0, 0.1, key="rot_k")
     show_band = st.checkbox("显示均值与±σ（仅收益视图）", value=True, key="rot_band")
     date_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="rot_start")
     date_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="rot_end")
+
 
 
 @st.cache_data(show_spinner=False)
@@ -997,17 +985,10 @@ def _mean_std(s: pd.Series):
 
 
 # 读取基础数据
-daily_df, month_df, quarter_df = None, None, None
-try:
-    if os.path.exists(path_daily):
-        daily_df = _load_df(path_daily, idx_name="date")
-    if os.path.exists(path_monthly):
-        month_df = _load_df(path_monthly, idx_name="month")
-    if os.path.exists(path_quarter):
-        quarter_df = _load_df(path_quarter, idx_name="quarter")
-except Exception as e:
-    st.error(f"读取大小盘CSV失败：{e}")
-    st.stop()
+daily_df = read_csv_default("rot_daily_csv")
+month_df = read_csv_default("rot_month_csv")
+quarter_df = read_csv_default("rot_quarter_csv")
+
 
 # 确定可选组合
 source_df = {"日度": daily_df, "月度": month_df, "季度": quarter_df}[freq]
@@ -1466,17 +1447,12 @@ import plotly.graph_objects as go
 # ---------- 侧边栏参数 ----------
 with st.sidebar:
     st.header("3.1 换手率标准差·参数")
-    # base_dir_31 = st.text_input("结果目录", value=get_path("turn_std_png_dir"), key="std31_base")
-    csv_path_31 = st.text_input("全量CSV路径", value=get_path("turn_std_csv"), key="std31_csv")
-    # png_dir_31  = st.text_input("PNG目录（可与结果目录相同）", value=base_dir_31, key="std31_pngdir")
-
+    st.caption(f"数据源：{get_path('turn_std_csv')}")
     dt_start_31 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="std31_start")
     dt_end_31 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="std31_end")
-
     agg_rule_31 = st.selectbox("可选聚合频率", ["不聚合(逐日)", "月度", "季度"], index=0, key="std31_agg")
-    smooth_win_31 = st.number_input("平滑窗口（移动平均，期）", min_value=1, max_value=60, value=3, step=1,
-                                    key="std31_smooth")
-    # unit_view_31  = st.selectbox("展示单位", ["小数", "百分比(%)"], index=0, key="std31_unit")
+    smooth_win_31 = st.number_input("平滑窗口（移动平均，期）", 1, 60, 3, 1, key="std31_smooth")
+
 
 
 # ---------- 工具函数 ----------
@@ -1578,11 +1554,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 读取 CSV
-try:
-    df31_raw = load_turn_std_csv(csv_path_31)
-except Exception as e:
-    st.warning(f"无法读取 3.1 全量CSV：{e}")
-    df31_raw = pd.DataFrame(columns=["trade_date", "scope", "level1_industry_name", "turn_daily_std"])  # 空壳
+df31_raw = read_csv_default(
+    "turn_std_csv",
+    required_cols=["trade_date", "scope", "level1_industry_name", "turn_daily_std"],
+    parse_dates=["trade_date"]
+)
+df31_raw["turn_daily_std"] = pd.to_numeric(df31_raw["turn_daily_std"], errors="coerce")
+
 
 if df31_raw.empty:
     st.info("未检测到 3.1 离线结果。请先运行离线脚本生成 CSV/PNG 再查看。")
