@@ -354,12 +354,12 @@ st.download_button('下载IC CSV', data=IC_df.to_csv(index=False).encode('utf-8-
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
     st.session_state["ep_path"] = get_path("div_result_csv2")
 
-# st.caption('本应用在本地浏览器运行，可读取你导出的合并 CSV；选择分数列与指数列后进行可视化与信号标注。')
+
 
 # 侧边栏：数据输入
 with st.sidebar:
     st.header('最终总分判断牛熊及买卖点·参数')
-    st.caption(f"数据源：{get_path('merged_csv')}")
+    
 
 # 固定读取默认 merged_csv
 df0 = read_csv_default("merged_csv")
@@ -542,8 +542,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
 # 侧边栏：数据输入
 with st.sidebar:
     st.header('因子贡献堆叠图参数')
-    st.caption(f"数据源：{get_path('factor_decomp_all_h')}")
-
+    
 df = read_csv_default("factor_decomp_all_h", parse_dates=["date"])
 
 
@@ -677,7 +676,7 @@ st.caption(
 
 with st.sidebar:
     st.header("1.1 300指数股息率 / 十年国债·参数")
-    st.caption(f"数据源：{get_path('div_result_csv')}")
+    
     div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
     div_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
@@ -805,7 +804,7 @@ st.caption(
 # 侧边栏参数
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
-    st.caption(f"数据源：{get_path('div_result_csv2')}")
+    
     ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
     ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
     ep_clip = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
@@ -1446,7 +1445,7 @@ import plotly.graph_objects as go
 # ---------- 侧边栏参数 ----------
 with st.sidebar:
     st.header("3.1 换手率标准差·参数")
-    st.caption(f"数据源：{get_path('turn_std_csv')}")
+    
     dt_start_31 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="std31_start")
     dt_end_31 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="std31_end")
     agg_rule_31 = st.selectbox("可选聚合频率", ["不聚合(逐日)", "月度", "季度"], index=0, key="std31_agg")
