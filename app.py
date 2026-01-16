@@ -841,10 +841,10 @@ st.caption(
 with st.sidebar:
     st.header("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
     
-    ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
-    ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
-    ep_clip = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
-    ep_bands = st.checkbox("显示均值与±1σ", value=True, key="ep_bands")
+    #ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
+    #ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
+    #ep_clip = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
+    #ep_bands = st.checkbox("显示均值与±1σ", value=True, key="ep_bands")
 
 
 
@@ -887,37 +887,36 @@ if btn_ep:
         epdf["weighted_ep_10bond"] = pd.to_numeric(epdf["weighted_ep_10bond"], errors="coerce")
 
         # 时间过滤
-        if ep_start:
-            try:
-                epdf = epdf[epdf["trade_date"] >= pd.to_datetime(ep_start, format="%Y%m%d")]
-            except:
-                st.warning("起始日格式应为 YYYYMMDD，已忽略。")
-        if ep_end:
-            try:
-                epdf = epdf[epdf["trade_date"] <= pd.to_datetime(ep_end, format="%Y%m%d")]
-            except:
-                st.warning("结束日格式应为 YYYYMMDD，已忽略。")
+        # if ep_start:
+        #     try:
+        #         epdf = epdf[epdf["trade_date"] >= pd.to_datetime(ep_start, format="%Y%m%d")]
+        #     except:
+        #         st.warning("起始日格式应为 YYYYMMDD，已忽略。")
+        # if ep_end:
+        #     try:
+        #         epdf = epdf[epdf["trade_date"] <= pd.to_datetime(ep_end, format="%Y%m%d")]
+        #     except:
+        #         st.warning("结束日格式应为 YYYYMMDD，已忽略。")
 
         if epdf.empty:
             st.warning("过滤后无数据。");
             st.stop()
 
         s = epdf["weighted_ep_10bond"].copy()
-        if ep_clip:
-            lo, hi = s.quantile([0.01, 0.99])
-            s = s.clip(lo, hi)
+        # if ep_clip:
+        #     lo, hi = s.quantile([0.01, 0.99])
+        #     s = s.clip(lo, hi)
         mu = float(pd.to_numeric(s, errors="coerce").mean())
         sd = float(pd.to_numeric(s, errors="coerce").std(ddof=1))
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=epdf["trade_date"], y=s, mode="lines",
                                  name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"))
-        if ep_bands:
-            fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu] * len(epdf),
+        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu] * len(epdf),
                                      mode="lines", name="均值", line=dict(dash="dot")))
-            fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu + sd] * len(epdf),
+        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu + sd] * len(epdf),
                                      mode="lines", name="均值+1σ", line=dict(dash="dash")))
-            fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu - sd] * len(epdf),
+        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu - sd] * len(epdf),
                                      mode="lines", name="均值-1σ", line=dict(dash="dash")))
         fig.update_layout(template="plotly_dark", height=520,
                           legend=dict(orientation="h", x=0, y=1.12),
