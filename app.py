@@ -1587,15 +1587,15 @@ def _fmt_range_text(s_dt, e_dt):
 st.markdown("---")
 st.subheader("3.1 换手率横截面标准差（全A + 行业）")
 
-st.markdown("""
-<div style="line-height: 1.4; color: #808080;">
-本页汇总：时间过滤、按日/月/季聚合、平滑窗口、单位切换（小数/百分比），并把全A与行业统一对比。
+# st.markdown("""
+# <div style="line-height: 1.4; color: #808080;">
+# 本页汇总：时间过滤、按日/月/季聚合、平滑窗口、单位切换（小数/百分比），并把全A与行业统一对比。
 
-</div>
-""", unsafe_allow_html=True)
+# </div>
+# """, unsafe_allow_html=True)
 
 # 参数设置
-st.subheader("3.1 换手率标准差·参数")
+
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     dt_start_31 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="std31_start")
