@@ -842,12 +842,12 @@ st.caption(
     '本图展示了A股的风险溢价（E/P，即市盈率倒数）与十年期国债收益率的时序关系。风险溢价表示股票市场的收益率相对于国债的超额回报，E/P 值越高，表示股票的风险溢价越高。通过计算市盈率倒数和股票的市值加权，得出加权的风险溢价。图中展示了A股风险溢价随时间的变化趋势，以及其相对于十年期国债收益率的波动范围。蓝色虚线表示风险溢价的均值，+1倍和-1倍标准差，图示了股市的波动性和国债收益率的变化关系。')
 
 # 参数设置
-st.subheader("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
+# st.subheader("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
 
 
 # 注释掉的参数保留，如果需要可以取消注释
-# ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
-# ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
+ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
+ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
 # ep_clip = st.checkbox("1%/99% 去极值", value=True, key="ep_clip")
 # ep_bands = st.checkbox("显示均值与±1σ", value=True, key="ep_bands")
 
