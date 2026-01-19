@@ -767,16 +767,16 @@ df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
 df = (df.dropna(subset=["trade_date"])
       .sort_values("trade_date")
       .drop_duplicates("trade_date", keep="last"))
-if div_start:
-    try:
-        df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
-    except:
-        st.warning("起始日格式应为 YYYYMMDD，已忽略。")
-if div_end:
-    try:
-        df = df[df["trade_date"] <= pd.to_datetime(div_end, format="%Y%m%d")]
-    except:
-        st.warning("结束日格式应为 YYYYMMDD，已忽略。")
+# if div_start:
+#     try:
+#         df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
+#     except:
+#         st.warning("起始日格式应为 YYYYMMDD，已忽略。")
+# if div_end:
+#     try:
+#         df = df[df["trade_date"] <= pd.to_datetime(div_end, format="%Y%m%d")]
+#     except:
+#         st.warning("结束日格式应为 YYYYMMDD，已忽略。")
 if df.empty:
     st.warning("过滤后无数据。");
     st.stop()
