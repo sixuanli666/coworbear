@@ -452,29 +452,41 @@ def _infer_h_from_name(col: str) -> Union[int, None]:
             return None
     return None
 
-col_select1, col_select2 = st.columns([1, 3])
-with col_select1:
-    score_col = st.selectbox('选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）', score_candidates, index=16 if score_candidates else None, key='main_score')
-# if enable_shift:
-#     default_h = _infer_h_from_name(score_col) or 0
-#     col_shift1, col_shift2, col_shift3 = st.columns([1, 2, 5])
-#     with col_shift1:
-#         shift_weeks = st.number_input(
+# col_select1, col_select2 = st.columns([1, 3])
+# with col_select1:
+#     score_col = st.selectbox('选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）', score_candidates, index=16 if score_candidates else None, key='main_score')
+
+# default_h = _infer_h_from_name(score_col) or 0
+# col_shift1, col_shift2, col_shift3 = st.columns([1, 2, 5])
+# with col_shift1:
+#   shift_weeks = st.number_input(
 #             '将分数线向右平移（按周）',
 #             min_value=0, max_value=260, value=default_h, step=1,
 #             key='main_shift_weeks'
 #         )
-# else:
-#     shift_weeks = 0
+
+# 同一行：模型选择 + 平移周数
+col_model, col_shift, col_blank = st.columns([3, 2, 3])
+
+with col_model:
+    score_col = st.selectbox(
+        '选择模型（未来1周、4周、8周、12周、16周、20周）',
+        score_candidates,
+        index=16 if score_candidates else None,
+        key='main_score'
+    )
 
 default_h = _infer_h_from_name(score_col) or 0
-col_shift1, col_shift2, col_shift3 = st.columns([1, 2, 5])
-with col_shift1:
-  shift_weeks = st.number_input(
-            '将分数线向右平移（按周）',
-            min_value=0, max_value=260, value=default_h, step=1,
-            key='main_shift_weeks'
-        )
+
+with col_shift:
+    shift_weeks = st.number_input(
+        '分数线右移（周）',
+        min_value=0,
+        max_value=260,
+        value=default_h,
+        step=1,
+        key='main_shift_weeks'
+    )
 
 # enable_shift = st.checkbox('将分数线向右平移（按周）', value=True, key='main_shift_enable')
 
