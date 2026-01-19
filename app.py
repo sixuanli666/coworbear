@@ -822,7 +822,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 st.download_button(
-        "下载CSV",
+        "下载1.1CSV",
         data=df[["trade_date", "weighted_dividend_rate", "nation10_yield",
                  "weighted_dividend_rate_div_nation10", "sh_close", "ratio"]]
         .to_csv(index=False).encode("utf-8-sig"),
@@ -928,11 +928,10 @@ fig.update_layout(template="plotly_dark", height=520,
                   yaxis=dict(title="E/P − 10Y（小数）"))
 st.plotly_chart(fig, use_container_width=True)
 
-with st.expander("下载当前视图数据"):
-    out_df = epdf.copy()
-    out_df["weighted_ep_10bond_clean"] = s.values
-    st.download_button("下载CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
-                       file_name="ep_minus_10y_clean.csv", mime="text/csv")
+out_df = epdf.copy()
+out_df["weighted_ep_10bond_clean"] = s.values
+st.download_button("下载1.2CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
+                   file_name="ep_minus_10y_clean.csv", mime="text/csv")
 
     # except Exception as e:
     #     st.error(f"生成失败：{type(e).__name__}: {e}")
@@ -1088,8 +1087,8 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-with st.expander("下载当前视图数据"):
-    st.download_button("下载CSV", data=plot_df.reset_index().to_csv(index=False).encode("utf-8-sig"),
+
+st.download_button("下载1.2CSV", data=plot_df.reset_index().to_csv(index=False).encode("utf-8-sig"),
                        file_name=f"大小盘_{freq}_{'收益' if view == '收益' else '净值'}.csv", mime="text/csv")
 
 # ======================= 2.2 行业拥挤度=======================
