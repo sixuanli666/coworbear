@@ -821,8 +821,7 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-with st.expander("下载当前视图数据"):
-    st.download_button(
+st.download_button(
         "下载CSV",
         data=df[["trade_date", "weighted_dividend_rate", "nation10_yield",
                  "weighted_dividend_rate_div_nation10", "sh_close", "ratio"]]
