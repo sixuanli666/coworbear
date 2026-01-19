@@ -620,7 +620,7 @@ df['date'] = pd.to_datetime(df['date'])
 # 让用户选择周期长度
 st.subheader('查看因子贡献')
 
-col_period1, col_period2 = st.columns([3, 3])
+col_period1, col_period2 = st.columns([3, 2])
 with col_period1:
     period_label = st.selectbox(
         "选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）",
