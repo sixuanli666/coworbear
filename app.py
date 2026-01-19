@@ -947,15 +947,15 @@ st.caption(
     '跟踪"大盘vs小盘"等多空组合的收益和净值，在任意周期（日/月/季）上显示谁在持续占优，并用均值±σ告诉你这个风格强弱是否已经走到极端、有没有到该防风格反转/调仓的时点。')
 
 # 参数设置
-st.subheader("2.1 大小盘轮动·参数")
+# st.subheader("2.1 大小盘轮动·参数")
 col1, col2, col3 = st.columns(3)
 with col1:
     freq = st.radio("频率", ["日度", "月度", "季度"], index=1, key="rot_freq")
 with col2:
     view = st.radio("指标", ["收益", "净值(NAV)"], index=0, key="rot_view")
 with col3:
-    k_sigma = st.number_input("±σ 带宽（σ倍数，仅收益视图有效）", 0.1, 3.0, 1.0, 0.1, key="rot_k")
-show_band = st.checkbox("显示均值与±σ（仅收益视图）", value=True, key="rot_band")
+    k_sigma = st.number_input("±σ 带宽（σ倍数，仅收益视图且单一收益组合有效）", 0.1, 3.0, 1.0, 0.1, key="rot_k")
+# show_band = st.checkbox("显示均值与±σ（仅收益视图）", value=True, key="rot_band")
 
 col_date1, col_date2 = st.columns(2)
 with col_date1:
@@ -1067,7 +1067,7 @@ title_suffix = "（收益）" if view == "收益" else "（净值）"
 fig_title = f"大小盘轮动 {freq} {title_suffix}"
 
 # 均值 ± σ（仅收益）
-if (view == "收益") and show_band and (len(choices) == 1):
+if (view == "收益") and (len(choices) == 1):
     s = plot_df[choices[0]]
     mu, sd = _mean_std(s)
     fig.add_trace(go.Scatter(x=plot_df.index, y=[mu] * len(plot_df), mode="lines",
