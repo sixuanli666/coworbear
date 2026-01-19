@@ -392,7 +392,7 @@ except Exception:
 # 下载IC结果（PNG）
 st.download_button('下载IC CSV', data=IC_df.to_csv(index=False).encode('utf-8-sig'), file_name='IC.csv',
                    mime='text/csv')
-
+st.markdown("---")
 # —— 避免 ep_path 为空导致 value 被忽略 ——
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
     st.session_state["ep_path"] = get_path("div_result_csv2")
@@ -440,7 +440,7 @@ if not score_candidates:
 
 # ================================ 主图
 # 参数设置
-st.subheader('最终总分判断牛熊及买卖点·参数')
+st.subheader('牛熊因子综合模型输出分数及指数对比·参数')
 import re
 
 def _infer_h_from_name(col: str) -> Union[int, None]:
@@ -455,10 +455,10 @@ def _infer_h_from_name(col: str) -> Union[int, None]:
 col_select1, col_select2 = st.columns([1, 3])
 with col_select1:
     score_col = st.selectbox('选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）', score_candidates, index=16 if score_candidates else None, key='main_score')
+enable_shift = st.checkbox('将分数线向右平移（按周）', value=True, key='main_shift_enable')
 
 use_quadrant = st.checkbox('启用强买强卖信号', value=True, key='main_quad')
 
-enable_shift = st.checkbox('将分数线向右平移（按周）', value=True, key='main_shift_enable')
 
 if enable_shift:
     default_h = _infer_h_from_name(score_col) or 0
@@ -493,7 +493,7 @@ sig_df.rename(columns={'clqn_prc': '指数'}, inplace=True)
 
 sig_df = sig_df.drop(columns=['final_sell_signal', 'final_buy_signal', 'index'])
 
-st.markdown("---")
+# st.markdown("---")
 st.subheader('牛熊因子综合模型输出分数及指数对比')
 st.caption(
     '下图展示了牛熊因子模型输出的总分在历史中与指数走势的对比，可以根据IC大小选择不同未来周收益率模型输出分数，一般IC越大模型预测效果越好，此外可以向右平移分数线查看当前预测指数走势，例如若选择预测未来16周指数收益率模型，可向右平移分数线16周，查看当前分数走势')
