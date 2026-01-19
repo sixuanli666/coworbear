@@ -159,10 +159,10 @@ def find_signals(df: pd.DataFrame, score_col: str, index_col: str,
 
 
 def make_main_figure(
-    df: pd.DataFrame,
-    score_col: str,
-    signals: pd.DataFrame = None,
-    shift_weeks: int = 0,
+        df: pd.DataFrame,
+        score_col: str,
+        signals: pd.DataFrame = None,
+        shift_weeks: int = 0,
 ):
     """
     简化版主图（写死指数列 clqn_prc）：
@@ -268,7 +268,6 @@ def make_main_figure(
     return fig
 
 
-
 from pathlib import Path
 
 APP_DIR = Path(__file__).parent
@@ -294,6 +293,7 @@ def resolve_first_existing(p: str) -> Union[Path, None]:
         except:
             pass
     return None
+
 
 @st.cache_data(show_spinner=False)
 def read_csv_default(key: str, *, required_cols=None, parse_dates=None) -> pd.DataFrame:
@@ -327,7 +327,6 @@ def read_csv_default(key: str, *, required_cols=None, parse_dates=None) -> pd.Da
                 df[c] = pd.to_datetime(df[c], errors="coerce")
 
     return df
-
 
 
 # ========== Streamlit UI ==========
@@ -397,16 +396,8 @@ st.markdown("---")
 if "ep_path" not in st.session_state or not st.session_state.get("ep_path"):
     st.session_state["ep_path"] = get_path("div_result_csv2")
 
-
-
-
-    
-
 # 固定读取默认 merged_csv
 df0 = read_csv_default("merged_csv")
-
-
-
 
 # 规范化列
 _df = df0.copy()
@@ -443,6 +434,7 @@ if not score_candidates:
 st.subheader('牛熊因子综合模型输出分数及指数对比·参数')
 import re
 
+
 def _infer_h_from_name(col: str) -> Union[int, None]:
     m = re.search(r'h(\d+)', col)  # 例如 score_h16_predret -> 16
     if m:
@@ -451,6 +443,7 @@ def _infer_h_from_name(col: str) -> Union[int, None]:
         except ValueError:
             return None
     return None
+
 
 # col_select1, col_select2 = st.columns([1, 3])
 # with col_select1:
@@ -492,9 +485,6 @@ with col_shift:
 
 use_quadrant = st.checkbox('启用强买强卖信号', value=True, key='main_quad')
 
-
-
-
 # 过滤起始日期
 # if start_date:
 #     _df = _df[_df['date'] >= pd.Timestamp(start_date)]
@@ -521,7 +511,6 @@ st.subheader('牛熊因子综合模型输出分数及指数对比')
 st.caption(
     '下图展示了牛熊因子模型输出的总分在历史中与指数走势的对比，可以根据IC大小选择不同未来周收益率模型输出分数，一般IC越大模型预测效果越好，此外可以向右平移分数线查看当前预测指数走势，例如若选择预测未来16周指数收益率模型，可向右平移分数线16周，查看当前分数走势')
 fig = make_main_figure(_df, score_col, signals=sig_df, shift_weeks=int(shift_weeks))
-
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -597,10 +586,7 @@ def create_stacked_bar_chart(df, columns_to_plot, period_label):
     return fig
 
 
-
-    
 df = read_csv_default("factor_decomp_all_h", parse_dates=["date"])
-
 
 # 选择展示列
 # columns_to_plot = [
@@ -627,8 +613,6 @@ with col_period1:
         index=4  # 默认选择16周
     )
 
-
-
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
 # 强制将所有列转换为数值型，非数值的会被转换为 NaN
@@ -644,11 +628,11 @@ st.plotly_chart(fig, use_container_width=True, key=f"chart_{period_label}")
 
 # 导出功能
 st.download_button(
-        '下载因子贡献数据',
-        data=df.to_csv(index=False).encode('utf-8-sig'),
-        file_name=f'factor_contributions_{period_label}weeks.csv',
-        mime='text/csv'
-    )
+    '下载因子贡献数据',
+    data=df.to_csv(index=False).encode('utf-8-sig'),
+    file_name=f'factor_contributions_{period_label}weeks.csv',
+    mime='text/csv'
+)
 
 st.markdown("---")
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
@@ -734,13 +718,13 @@ st.subheader("1.1 300指数股息率 / 十年国债")
 st.caption(
     '300指数（剔除了金融股）的股息率与十年期国债收益率的比较。股息率是指股票的年度股息除以股价，而十年期国债收益率则是债券投资的回报率。图中展示了这两者的变化趋势。蓝色虚线表示平均值，+1倍和-1倍标准差，图示了股息率与国债收益率的相对收益率情况。(已增加上证综指)')
 
+
 # with st.sidebar:
 #     st.header("1.1 300指数股息率 / 十年国债·参数")
-    
+
 #     div_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="div_start_fixed")
 #     div_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="div_end_fixed")
 #     show_bands_11 = st.checkbox("显示均值与±1σ", value=True, key="div_bands_fixed")
-
 
 
 # # —— 1.1 读源诊断——
@@ -761,96 +745,92 @@ def _read_csv_smart(src):
     except UnicodeDecodeError:
         return pd.read_csv(src, sep=None, engine="python", encoding="utf-8-sig")
 
-btn_csv_11 = st.button("生成图表", type="primary", key="div_btn_fixed")
-if btn_csv_11:
+
+
+df = read_csv_default(
+    "div_result_csv",
+    required_cols=["trade_date", "weighted_dividend_rate", "sh_close", "nation10_yield",
+                   "weighted_dividend_rate_div_nation10"],
+    parse_dates=["trade_date"]
+)
+
+# 固定列名校验
+need = ["trade_date", "weighted_dividend_rate", "sh_close",
+        "nation10_yield", "weighted_dividend_rate_div_nation10"]
+miss = [c for c in need if c not in df.columns]
+if miss:
+    st.error(f"CSV 缺少必要列：{miss}\n读取到的列：{list(df.columns)}")
+    st.stop()
+
+# 规范与过滤
+df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
+df = (df.dropna(subset=["trade_date"])
+      .sort_values("trade_date")
+      .drop_duplicates("trade_date", keep="last"))
+if div_start:
     try:
-        df = read_csv_default(
-            "div_result_csv",
-            required_cols=["trade_date", "weighted_dividend_rate", "sh_close", "nation10_yield", "weighted_dividend_rate_div_nation10"],
-            parse_dates=["trade_date"]
-        )
+        df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
+    except:
+        st.warning("起始日格式应为 YYYYMMDD，已忽略。")
+if div_end:
+    try:
+        df = df[df["trade_date"] <= pd.to_datetime(div_end, format="%Y%m%d")]
+    except:
+        st.warning("结束日格式应为 YYYYMMDD，已忽略。")
+if df.empty:
+    st.warning("过滤后无数据。");
+    st.stop()
 
+# 数值化
+for c in ["weighted_dividend_rate", "nation10_yield",
+          "weighted_dividend_rate_div_nation10", "sh_close"]:
+    df[c] = pd.to_numeric(df[c], errors="coerce")
 
-        # 固定列名校验
-        need = ["trade_date", "weighted_dividend_rate", "sh_close",
-                "nation10_yield", "weighted_dividend_rate_div_nation10"]
-        miss = [c for c in need if c not in df.columns]
-        if miss:
-            st.error(f"CSV 缺少必要列：{miss}\n读取到的列：{list(df.columns)}")
-            st.stop()
+# 使用你已给好的比值列；它前期为 NaN 也没事
+df["ratio"] = df["weighted_dividend_rate_div_nation10"]
 
-        # 规范与过滤
-        df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
-        df = (df.dropna(subset=["trade_date"])
-              .sort_values("trade_date")
-              .drop_duplicates("trade_date", keep="last"))
-        if div_start:
-            try:
-                df = df[df["trade_date"] >= pd.to_datetime(div_start, format="%Y%m%d")]
-            except:
-                st.warning("起始日格式应为 YYYYMMDD，已忽略。")
-        if div_end:
-            try:
-                df = df[df["trade_date"] <= pd.to_datetime(div_end, format="%Y%m%d")]
-            except:
-                st.warning("结束日格式应为 YYYYMMDD，已忽略。")
-        if df.empty:
-            st.warning("过滤后无数据。");
-            st.stop()
+# 统计只对有效值
+s = df["ratio"].replace([np.inf, -np.inf], np.nan).dropna()
+mu = float(s.mean()) if len(s) else 0.0
+sd = float(s.std(ddof=1)) if len(s) else 1.0
+if sd == 0 or np.isnan(sd): sd = 1.0
 
-        # 数值化
-        for c in ["weighted_dividend_rate", "nation10_yield",
-                  "weighted_dividend_rate_div_nation10", "sh_close"]:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
+# 画图
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=df["trade_date"], y=df["ratio"],
+                         mode="lines", name="300股息率/十年国债", yaxis="y1"))
 
-        # 使用你已给好的比值列；它前期为 NaN 也没事
-        df["ratio"] = df["weighted_dividend_rate_div_nation10"]
+fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu] * len(df),
+                         mode="lines", name="均值", line=dict(dash="dot"), yaxis="y1"))
+fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu + sd] * len(df),
+                         mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
+fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu - sd] * len(df),
+                         mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
 
-        # 统计只对有效值
-        s = df["ratio"].replace([np.inf, -np.inf], np.nan).dropna()
-        mu = float(s.mean()) if len(s) else 0.0
-        sd = float(s.std(ddof=1)) if len(s) else 1.0
-        if sd == 0 or np.isnan(sd): sd = 1.0
+fig.add_trace(go.Scatter(x=df["trade_date"], y=df["sh_close"],
+                         mode="lines", name="上证综指", yaxis="y2"))
 
-        # 画图
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df["trade_date"], y=df["ratio"],
-                                 mode="lines", name="300股息率/十年国债", yaxis="y1"))
-      
-          
-        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu] * len(df),
-                                     mode="lines", name="均值", line=dict(dash="dot"), yaxis="y1"))
-        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu + sd] * len(df),
-                                     mode="lines", name="均值+1σ", line=dict(dash="dash"), yaxis="y1"))
-        fig.add_trace(go.Scatter(x=df["trade_date"], y=[mu - sd] * len(df),
-                                     mode="lines", name="均值-1σ", line=dict(dash="dash"), yaxis="y1"))
+fig.update_layout(
+    template="plotly_dark",
+    height=560,
+    legend=dict(orientation="h", x=0, y=1.12),
+    margin=dict(l=60, r=70, t=40, b=40),
+    xaxis=dict(title="日期"),
+    yaxis=dict(title="股息率/十年国债", autorange="reversed"),
+    yaxis2=dict(title="上证综指", side="right", overlaying="y")
+)
+st.plotly_chart(fig, use_container_width=True)
 
-        fig.add_trace(go.Scatter(x=df["trade_date"], y=df["sh_close"],
-                                 mode="lines", name="上证综指", yaxis="y2"))
+with st.expander("下载当前视图数据"):
+    st.download_button(
+        "下载CSV",
+        data=df[["trade_date", "weighted_dividend_rate", "nation10_yield",
+                 "weighted_dividend_rate_div_nation10", "sh_close", "ratio"]]
+        .to_csv(index=False).encode("utf-8-sig"),
+        file_name="1.1_div_vs_10y_with_sh.csv",
+        mime="text/csv"
+    )
 
-        fig.update_layout(
-            template="plotly_dark",
-            height=560,
-            legend=dict(orientation="h", x=0, y=1.12),
-            margin=dict(l=60, r=70, t=40, b=40),
-            xaxis=dict(title="日期"),
-            yaxis=dict(title="股息率/十年国债", autorange="reversed"),
-            yaxis2=dict(title="上证综指", side="right", overlaying="y")
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-        with st.expander("下载当前视图数据"):
-            st.download_button(
-                "下载CSV",
-                data=df[["trade_date", "weighted_dividend_rate", "nation10_yield",
-                         "weighted_dividend_rate_div_nation10", "sh_close", "ratio"]]
-                .to_csv(index=False).encode("utf-8-sig"),
-                file_name="1.1_div_vs_10y_with_sh.csv",
-                mime="text/csv"
-            )
-
-    except Exception as e:
-        st.error(f"生成图表失败：{type(e).__name__}: {e}")
 
 ####################
 # ======== 新增：1.2 全A E/P 减 10Y 国债（风险溢价） ========
@@ -864,6 +844,8 @@ st.caption(
 
 # 参数设置
 st.subheader("1.2 全A E/P(市盈率倒数)−十年期国债·参数")
+
+
 # 注释掉的参数保留，如果需要可以取消注释
 # ep_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="ep_start")
 # ep_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="ep_end")
@@ -886,6 +868,7 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
     df["weighted_ep_10bond"] = pd.to_numeric(df["weighted_ep_10bond"], errors="coerce")
     return df
 
+
 btn_ep = st.button("生成图表", type="primary", key="ep_btn")
 if btn_ep:
     try:
@@ -894,7 +877,6 @@ if btn_ep:
             required_cols=["trade_date", "weighted_ep_10bond"],
             parse_dates=["trade_date"]
         )
-
 
         # 列/类型规范化（避免后续筛选/作图出错）
         if "trade_date" not in epdf.columns:
@@ -935,11 +917,11 @@ if btn_ep:
         fig.add_trace(go.Scatter(x=epdf["trade_date"], y=s, mode="lines",
                                  name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"))
         fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu] * len(epdf),
-                                     mode="lines", name="均值", line=dict(dash="dot")))
+                                 mode="lines", name="均值", line=dict(dash="dot")))
         fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu + sd] * len(epdf),
-                                     mode="lines", name="均值+1σ", line=dict(dash="dash")))
+                                 mode="lines", name="均值+1σ", line=dict(dash="dash")))
         fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu - sd] * len(epdf),
-                                     mode="lines", name="均值-1σ", line=dict(dash="dash")))
+                                 mode="lines", name="均值-1σ", line=dict(dash="dash")))
         fig.update_layout(template="plotly_dark", height=520,
                           legend=dict(orientation="h", x=0, y=1.12),
                           margin=dict(l=60, r=40, t=40, b=40),
@@ -955,10 +937,6 @@ if btn_ep:
 
     except Exception as e:
         st.error(f"生成失败：{type(e).__name__}: {e}")
-
-
-
-
 
 ######################大小盘轮动
 # ======== 新增：2.1 大小盘轮动（读取线下CSV，交互展示） ========
@@ -986,6 +964,7 @@ with col_date1:
     date_start = st.text_input("起始日(YYYYMMDD，可空)", value="", key="rot_start")
 with col_date2:
     date_end = st.text_input("结束日(YYYYMMDD，可空)", value="", key="rot_end")
+
 
 @st.cache_data(show_spinner=False)
 def _load_df(path: str, idx_name: str):
@@ -1042,13 +1021,10 @@ def _mean_std(s: pd.Series):
     return float(s2.mean()), float(s2.std(ddof=1)) or 1.0
 
 
-
 # 读取基础数据（一定要用 _load_df 做索引列清洗）
-daily_df   = _load_df(str(resolve_first_existing(get_path("rot_daily_csv"))),   idx_name="date")
-month_df   = _load_df(str(resolve_first_existing(get_path("rot_month_csv"))),   idx_name="month")
+daily_df = _load_df(str(resolve_first_existing(get_path("rot_daily_csv"))), idx_name="date")
+month_df = _load_df(str(resolve_first_existing(get_path("rot_month_csv"))), idx_name="month")
 quarter_df = _load_df(str(resolve_first_existing(get_path("rot_quarter_csv"))), idx_name="quarter")
-
-
 
 # 确定可选组合
 source_df = {"日度": daily_df, "月度": month_df, "季度": quarter_df}[freq]
@@ -1478,6 +1454,7 @@ with col1:
 with col2:
     crowd_end3 = st.text_input("结束日(YYYYMMDD，可空)", value="", key="crowd_end3")
 
+
 # 计算行业热度榜（成交额占比、分位数、换手率）
 def calc_industry_heat(df, start_date, end_date):
     # 筛选数据
@@ -1520,6 +1497,7 @@ import re
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+
 
 # ---------- 工具函数 ----------
 def _parse_dt_31(s: str):
@@ -1565,26 +1543,25 @@ def _agg_df(df: pd.DataFrame, rule: str) -> pd.DataFrame:
     if not res_rule:
         return df
 
-    #def _agg_one(g):
-        #g = g.set_index("trade_date").sort_index()
-        #out = g.resample(res_rule).mean(numeric_only=True).reset_index()
-        #for c in ["scope", "level1_industry_name"]:
-            #out[c] = g[c].iloc[-1] if not g.empty else None
-        #return out[["trade_date", "scope", "level1_industry_name", "turn_daily_std"]]
+    # def _agg_one(g):
+    # g = g.set_index("trade_date").sort_index()
+    # out = g.resample(res_rule).mean(numeric_only=True).reset_index()
+    # for c in ["scope", "level1_industry_name"]:
+    # out[c] = g[c].iloc[-1] if not g.empty else None
+    # return out[["trade_date", "scope", "level1_industry_name", "turn_daily_std"]]
 
     def _agg_one(g):
         g = g.set_index("trade_date").sort_index()
 
-     # 只取数值列 resample（最稳）
+        # 只取数值列 resample（最稳）
         num = g[["turn_daily_std"]].apply(pd.to_numeric, errors="coerce")
         out = num.resample(res_rule).mean().reset_index()
 
-    # 补回标签列（每个聚合桶用最后一个标签）
+        # 补回标签列（每个聚合桶用最后一个标签）
         out["scope"] = g["scope"].iloc[-1] if not g.empty else None
         out["level1_industry_name"] = g["level1_industry_name"].iloc[-1] if not g.empty else None
 
         return out[["trade_date", "scope", "level1_industry_name", "turn_daily_std"]]
-
 
     parts = []
     for _, g in df.groupby(["scope", "level1_industry_name"], dropna=False):
@@ -1621,7 +1598,7 @@ st.markdown("""
 
 # 参数设置
 st.subheader("3.1 换手率标准差·参数")
-col1, col2, col3,col4 = st.columns(4)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     dt_start_31 = st.text_input("起始日(YYYYMMDD，可空)", value="", key="std31_start")
 with col2:
@@ -1638,7 +1615,6 @@ df31_raw = read_csv_default(
     parse_dates=["trade_date"]
 )
 df31_raw["turn_daily_std"] = pd.to_numeric(df31_raw["turn_daily_std"], errors="coerce")
-
 
 if df31_raw.empty:
     st.info("未检测到 3.1 离线结果。请先运行离线脚本生成 CSV/PNG 再查看。")
