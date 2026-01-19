@@ -644,14 +644,14 @@ fig = create_stacked_bar_chart(df, columns_to_plot_for_period, period_label)
 st.plotly_chart(fig, use_container_width=True, key=f"chart_{period_label}")
 
 # 导出功能
-with st.expander('导出数据'):
-    st.download_button(
-        '下载数据',
+st.download_button(
+        '下载因子贡献数据',
         data=df.to_csv(index=False).encode('utf-8-sig'),
         file_name=f'factor_contributions_{period_label}weeks.csv',
         mime='text/csv'
     )
 
+st.markdown("---")
 # ================== 单因子图（来自本地导出的PNG/JPG） ==================
 st.subheader('单因子分数图')
 
