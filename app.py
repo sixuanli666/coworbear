@@ -868,74 +868,74 @@ def load_ep10_csv(path: str) -> pd.DataFrame:
     return df
 
 
-btn_ep = st.button("生成图表", type="primary", key="ep_btn")
-if btn_ep:
-    try:
-        epdf = read_csv_default(
-            "div_result_csv2",
-            required_cols=["trade_date", "weighted_ep_10bond"],
-            parse_dates=["trade_date"]
-        )
+# btn_ep = st.button("生成图表", type="primary", key="ep_btn")
+# if btn_ep:
+#     try:
+epdf = read_csv_default(
+    "div_result_csv2",
+    required_cols=["trade_date", "weighted_ep_10bond"],
+    parse_dates=["trade_date"]
+)
 
-        # 列/类型规范化（避免后续筛选/作图出错）
-        if "trade_date" not in epdf.columns:
-            st.error("CSV 缺少 trade_date 列");
-            st.stop()
-        if "weighted_ep_10bond" not in epdf.columns:
-            st.error("CSV 缺少 weighted_ep_10bond 列");
-            st.stop()
+# 列/类型规范化（避免后续筛选/作图出错）
+if "trade_date" not in epdf.columns:
+    st.error("CSV 缺少 trade_date 列");
+    st.stop()
+if "weighted_ep_10bond" not in epdf.columns:
+    st.error("CSV 缺少 weighted_ep_10bond 列");
+    st.stop()
 
-        epdf["trade_date"] = pd.to_datetime(epdf["trade_date"], errors="coerce")
-        epdf = epdf.dropna(subset=["trade_date"]).sort_values("trade_date").drop_duplicates("trade_date", keep="last")
-        epdf["weighted_ep_10bond"] = pd.to_numeric(epdf["weighted_ep_10bond"], errors="coerce")
+epdf["trade_date"] = pd.to_datetime(epdf["trade_date"], errors="coerce")
+epdf = epdf.dropna(subset=["trade_date"]).sort_values("trade_date").drop_duplicates("trade_date", keep="last")
+epdf["weighted_ep_10bond"] = pd.to_numeric(epdf["weighted_ep_10bond"], errors="coerce")
 
-        # 时间过滤
-        # if ep_start:
-        #     try:
-        #         epdf = epdf[epdf["trade_date"] >= pd.to_datetime(ep_start, format="%Y%m%d")]
-        #     except:
-        #         st.warning("起始日格式应为 YYYYMMDD，已忽略。")
-        # if ep_end:
-        #     try:
-        #         epdf = epdf[epdf["trade_date"] <= pd.to_datetime(ep_end, format="%Y%m%d")]
-        #     except:
-        #         st.warning("结束日格式应为 YYYYMMDD，已忽略。")
+# 时间过滤
+# if ep_start:
+#     try:
+#         epdf = epdf[epdf["trade_date"] >= pd.to_datetime(ep_start, format="%Y%m%d")]
+#     except:
+#         st.warning("起始日格式应为 YYYYMMDD，已忽略。")
+# if ep_end:
+#     try:
+#         epdf = epdf[epdf["trade_date"] <= pd.to_datetime(ep_end, format="%Y%m%d")]
+#     except:
+#         st.warning("结束日格式应为 YYYYMMDD，已忽略。")
 
-        if epdf.empty:
-            st.warning("过滤后无数据。");
-            st.stop()
+if epdf.empty:
+    st.warning("过滤后无数据。");
+    st.stop()
 
-        s = epdf["weighted_ep_10bond"].copy()
-        # if ep_clip:
-        #     lo, hi = s.quantile([0.01, 0.99])
-        #     s = s.clip(lo, hi)
-        mu = float(pd.to_numeric(s, errors="coerce").mean())
-        sd = float(pd.to_numeric(s, errors="coerce").std(ddof=1))
+s = epdf["weighted_ep_10bond"].copy()
+# if ep_clip:
+#     lo, hi = s.quantile([0.01, 0.99])
+#     s = s.clip(lo, hi)
+mu = float(pd.to_numeric(s, errors="coerce").mean())
+sd = float(pd.to_numeric(s, errors="coerce").std(ddof=1))
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=s, mode="lines",
-                                 name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"))
-        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu] * len(epdf),
-                                 mode="lines", name="均值", line=dict(dash="dot")))
-        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu + sd] * len(epdf),
-                                 mode="lines", name="均值+1σ", line=dict(dash="dash")))
-        fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu - sd] * len(epdf),
-                                 mode="lines", name="均值-1σ", line=dict(dash="dash")))
-        fig.update_layout(template="plotly_dark", height=520,
-                          legend=dict(orientation="h", x=0, y=1.12),
-                          margin=dict(l=60, r=40, t=40, b=40),
-                          xaxis=dict(title="日期"),
-                          yaxis=dict(title="E/P − 10Y（小数）"))
-        st.plotly_chart(fig, use_container_width=True)
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=epdf["trade_date"], y=s, mode="lines",
+                         name="A股风险溢价：E/P − 10Y（小数）", yaxis="y1"))
+fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu] * len(epdf),
+                         mode="lines", name="均值", line=dict(dash="dot")))
+fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu + sd] * len(epdf),
+                         mode="lines", name="均值+1σ", line=dict(dash="dash")))
+fig.add_trace(go.Scatter(x=epdf["trade_date"], y=[mu - sd] * len(epdf),
+                         mode="lines", name="均值-1σ", line=dict(dash="dash")))
+fig.update_layout(template="plotly_dark", height=520,
+                  legend=dict(orientation="h", x=0, y=1.12),
+                  margin=dict(l=60, r=40, t=40, b=40),
+                  xaxis=dict(title="日期"),
+                  yaxis=dict(title="E/P − 10Y（小数）"))
+st.plotly_chart(fig, use_container_width=True)
 
-        with st.expander("下载当前视图数据"):
-            out_df = epdf.copy()
-            out_df["weighted_ep_10bond_clean"] = s.values
-            st.download_button("下载CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
-                               file_name="ep_minus_10y_clean.csv", mime="text/csv")
+with st.expander("下载当前视图数据"):
+    out_df = epdf.copy()
+    out_df["weighted_ep_10bond_clean"] = s.values
+    st.download_button("下载CSV", data=out_df.to_csv(index=False).encode("utf-8-sig"),
+                       file_name="ep_minus_10y_clean.csv", mime="text/csv")
 
-    except Exception as e:
-        st.error(f"生成失败：{type(e).__name__}: {e}")
+    # except Exception as e:
+    #     st.error(f"生成失败：{type(e).__name__}: {e}")
 
 ######################大小盘轮动
 # ======== 新增：2.1 大小盘轮动（读取线下CSV，交互展示） ========
