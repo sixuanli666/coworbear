@@ -620,13 +620,15 @@ df['date'] = pd.to_datetime(df['date'])
 # 让用户选择周期长度
 st.subheader('查看因子贡献')
 
-col_period1, col_period2 = st.columns([1, 3])
+col_period1, col_period2 = st.columns(3, 3])
 with col_period1:
     period_label = st.selectbox(
         "选择模型（未来1周、未来4周、未来8周、未来12周、未来16周、未来20周）",
         options=[1, 4, 8, 12, 16, 20],
         index=4  # 默认选择16周
     )
+
+
 
 # 更新因子列名称以适应不同周期
 columns_to_plot_for_period = [col.replace('16', str(period_label)) for col in columns_to_plot]
